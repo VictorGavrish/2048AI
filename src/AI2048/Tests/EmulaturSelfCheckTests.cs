@@ -1,10 +1,12 @@
-﻿using System;
-using System.Linq;
-using AI2048.Game;
-using NUnit.Framework;
-
-namespace AI2048.Tests
+﻿namespace AI2048.Tests
 {
+    using System;
+    using System.Linq;
+
+    using AI2048.Game;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class EmulaturSelfCheckTests
     {
@@ -58,13 +60,11 @@ namespace AI2048.Tests
         {
             using (var game = new GamePage())
             {
-                var moves = new[]{
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
+                var moves = new[]
+                {
+                    Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, 
+                    Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, 
+                    Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right
                 };
 
                 foreach (var move in moves)
@@ -83,7 +83,6 @@ namespace AI2048.Tests
                         Console.WriteLine(actual);
                     }
                 }
-
             }
         }
 
@@ -92,20 +91,20 @@ namespace AI2048.Tests
         {
             using (var game = new GamePage())
             {
-                var moves = new[]{
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
-                    Move.Up, Move.Left, Move.Down, Move.Right,
+                var moves = new[]
+                {
+                    Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, 
+                    Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right, Move.Up, Move.Left, 
+                    Move.Down, Move.Right, Move.Up, Move.Left, Move.Down, Move.Right
                 };
 
                 foreach (var move in moves)
                 {
                     game.Turn(move);
                     if (game.NewEl == 4)
+                    {
                         continue;
+                    }
 
                     var state = game.GridStateNoNew;
                     var possibleStates = GameLogic.NextPossibleWorldStates(state);
@@ -118,7 +117,6 @@ namespace AI2048.Tests
                         Console.WriteLine(actual);
                     }
                 }
-
             }
         }
     }

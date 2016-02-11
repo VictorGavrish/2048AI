@@ -2,9 +2,12 @@
 {
     public enum Move
     {
-        Left,
-        Right,
-        Up,
+        Left, 
+
+        Right, 
+
+        Up, 
+
         Down
     }
 }

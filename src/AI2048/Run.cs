@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Threading;
-using AI2048.AI;
-using AI2048.Game;
-using NUnit.Framework;
-
-namespace AI2048
+﻿namespace AI2048
 {
+    using System;
+    using System.Drawing.Imaging;
+
+    using AI2048.AI;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class Run
     {
@@ -17,17 +15,19 @@ namespace AI2048
         {
             var agent = new OptiminiOptimaxAgent(Heuristic.AllRotatiions(Heuristic.CornerVave));
 
-            for (int i = 0; i < 10; i++)
-            using (var game = new GamePage())
+            for (var i = 0; i < 10; i++)
             {
-                while (game.CanMove)
+                using (var game = new GamePage())
                 {
-                    var move = agent.MakeDecision(game.GridState);
-                    game.Turn(move);
-                }
+                    while (game.CanMove)
+                    {
+                        var move = agent.MakeDecision(game.GridState);
+                        game.Turn(move);
+                    }
 
-                game.TakeScreenshot().SaveAsFile("game_" + game.Score + ".png", ImageFormat.Png);
-                Console.WriteLine(game.Score);
+                    game.TakeScreenshot().SaveAsFile("game_" + game.Score + ".png", ImageFormat.Png);
+                    Console.WriteLine(game.Score);
+                }
             }
         }
     }

@@ -1,16 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace AI2048.Game
+﻿namespace AI2048.Game
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
     public class Grid
     {
-        private readonly int[,] _grid; 
+        protected bool Equals(Grid other)
+        {
+            return Equals(this.grid, other.grid);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+            return Equals((Grid)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (this.grid != null ? this.grid.GetHashCode() : 0);
+        }
+
+        private readonly int[,] grid;
+
         public Grid(int[,] grid)
         {
-            _grid = grid;
+            this.grid = grid;
         }
 
         public Grid(string[] rows)
@@ -25,31 +52,32 @@ namespace AI2048.Game
                 }
             }
 
-            _grid = grid;
+            this.grid = grid;
         }
 
         public int this[int x, int y]
         {
             get
             {
-                return _grid[x, y];
+                return this.grid[x, y];
             }
         }
 
         public int[,] CloneMatrix()
         {
-            return (int[,])_grid.Clone();
+            return (int[,])this.grid.Clone();
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            for (var y = 0; y < _grid.GetLength(0); y++)
+            for (var y = 0; y < this.grid.GetLength(0); y++)
             {
-                for (var x = 0; x < _grid.GetLength(0); x++)
+                for (var x = 0; x < this.grid.GetLength(0); x++)
                 {
-                    sb.Append(_grid[x, y] + " ");
+                    sb.Append(this.grid[x, y] + " ");
                 }
+
                 sb.AppendLine();
             }
 
@@ -58,16 +86,30 @@ namespace AI2048.Game
 
         public static bool operator ==(Grid first, Grid second)
         {
-            if (ReferenceEquals(null, first)) return false;
-            if (ReferenceEquals(null, second)) return false;
+            if (ReferenceEquals(null, first))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(null, second))
+            {
+                return false;
+            }
 
             return first.ToString() == second.ToString(); // yeh, this is not the slowest operation here))
         }
 
         public static bool operator !=(Grid first, Grid second)
         {
-            if (ReferenceEquals(null, first)) return false;
-            if (ReferenceEquals(null, second)) return false;
+            if (ReferenceEquals(null, first))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(null, second))
+            {
+                return false;
+            }
 
             return !(first == second);
         }
@@ -77,8 +119,9 @@ namespace AI2048.Game
             var res = new int[4];
             for (var i = 0; i < 4; i++)
             {
-                res[i] = _grid[i, y];
+                res[i] = this.grid[i, y];
             }
+
             return res;
         }
 
@@ -87,17 +130,23 @@ namespace AI2048.Game
             var res = new int[4];
             for (var i = 0; i < 4; i++)
             {
-                res[i] = _grid[x, i];
+                res[i] = this.grid[x, i];
             }
+
             return res;
         }
 
         public int SummAll()
         {
             var sum = 0;
-            for (var x = 0; x < _grid.GetLength(0); x++)
-                for (var y = 0; y < _grid.GetLength(0); y++)
-                    sum+=_grid[x, y];
+            for (var x = 0; x < this.grid.GetLength(0); x++)
+            {
+                for (var y = 0; y < this.grid.GetLength(0); y++)
+                {
+                    sum += this.grid[x, y];
+                }
+            }
+
             return sum;
         }
 
@@ -106,10 +155,17 @@ namespace AI2048.Game
             get
             {
                 var n = 0;
-                for (var x = 0; x < _grid.GetLength(0); x++)
-                    for (var y = 0; y < _grid.GetLength(0); y++)
-                        if(_grid[x, y] == 0)
-                        n++;
+                for (var x = 0; x < this.grid.GetLength(0); x++)
+                {
+                    for (var y = 0; y < this.grid.GetLength(0); y++)
+                    {
+                        if (this.grid[x, y] == 0)
+                        {
+                            n++;
+                        }
+                    }
+                }
+
                 return n;
             }
         }
@@ -117,9 +173,14 @@ namespace AI2048.Game
         public int[] Flatten()
         {
             var res = new List<int>();
-            for (var x = 0; x < _grid.GetLength(0); x++)
-                for (var y = 0; y < _grid.GetLength(0); y++)
-                    res.Add(_grid[x, y]);
+            for (var x = 0; x < this.grid.GetLength(0); x++)
+            {
+                for (var y = 0; y < this.grid.GetLength(0); y++)
+                {
+                    res.Add(this.grid[x, y]);
+                }
+            }
+
             return res.ToArray();
         }
     }

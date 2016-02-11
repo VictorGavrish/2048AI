@@ -1,17 +1,19 @@
-﻿using System;
-using System.Linq;
-using AI2048.Game;
-using NUnit.Framework;
-
-namespace AI2048.Tests
+﻿namespace AI2048.Tests
 {
+    using System;
+    using System.Linq;
+
+    using AI2048.Game;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class GridOperationsTests
     {
         [Test]
         public void RotateCWTest()
         {
-            Test(@"
+            this.Test(@"
 0 0 0 0 
 4 0 0 0 
 8 0 0 0 
@@ -26,7 +28,7 @@ namespace AI2048.Tests
         [Test]
         public void RotateCWFullTest()
         {
-            Test(@"
+            this.Test(@"
 01 02 03 04 
 05 06 07 08 
 09 10 11 12 
@@ -40,7 +42,7 @@ namespace AI2048.Tests
 
         private void Test(string @case)
         {
-            var testCase = parse(@case);
+            var testCase = this.parse(@case);
 
             var grid = testCase.Item1;
             var expected = testCase.Item2;
@@ -56,6 +58,6 @@ namespace AI2048.Tests
             var exp = new Grid(lines.Skip(6).Take(4).ToArray());
 
             return Tuple.Create(init, exp);
-        }         
+        }
     }
 }

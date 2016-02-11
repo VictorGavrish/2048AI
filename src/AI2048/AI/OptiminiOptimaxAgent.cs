@@ -1,27 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AI2048.Game;
-
-namespace AI2048.AI
+﻿namespace AI2048.AI
 {
-    public class OptiminiOptimaxAgent: Agent
-    {
-        public const int MAX_DEPTH = 3;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
-        public OptiminiOptimaxAgent(Func<Grid, long> heurstk) : base(heurstk) {}
+    using AI2048.Game;
+
+    public class OptiminiOptimaxAgent : Agent
+    {
+        public const int MaxDepth = 3;
+
+        public OptiminiOptimaxAgent(Func<Grid, long> heurstk)
+            : base(heurstk)
+        {
+        }
 
         public override Move MakeDecision(Grid state)
         {
             var simulationResults = new Dictionary<Move, long>();
-            foreach (var move in MOVES)
+            foreach (var move in this.Moves)
             {
-                simulationResults.Add(move, evaluateMove(state, move));
+                simulationResults.Add(move, this.evaluateMove(state, move));
             }
 
             var decision = simulationResults.OrderByDescending(p => p.Value).First();
-            //Console.WriteLine(String.Join(" ", simulationResults.Select(p => p.Value.ToString()).ToArray()) + ">" + decision.Value);
 
+            // Console.WriteLine(String.Join(" ", simulationResults.Select(p => p.Value.ToString()).ToArray()) + ">" + decision.Value);
             return decision.Key;
         }
 
@@ -29,28 +33,38 @@ namespace AI2048.AI
         {
             var newState = GameLogic.MakeMove(state, move);
             if (newState == state)
+            {
                 return long.MinValue;
+            }
 
-            return maxNodeValue(newState, 0);
+            return this.maxNodeValue(newState, 0);
         }
 
         public long maxNodeValue(Grid state, int currDepth)
         {
-            if (currDepth >= MAX_DEPTH)
-                return _heuristic(state);
+            if (currDepth >= MaxDepth)
+            {
+                return this.Heuristic(state);
+            }
 
             var value = long.MinValue;
-            foreach (var move in MOVES)
+            foreach (var move in this.Moves)
             {
                 var newState = GameLogic.MakeMove(state, move);
                 if (newState == state)
+                {
                     continue;
+                }
 
                 long newVal;
                 if (state.EmptyCellsNo > 3)
-                    newVal = randomNodeValue(newState, currDepth+1);
+                {
+                    newVal = this.randomNodeValue(newState, currDepth + 1);
+                }
                 else
-                    newVal = minNodeValue(newState, currDepth + 1);
+                {
+                    newVal = this.minNodeValue(newState, currDepth + 1);
+                }
 
                 value = Math.Max(value, newVal);
             }
@@ -63,12 +77,14 @@ namespace AI2048.AI
             var value = 0L;
             var nextStates = GameLogic.NextPossibleWorldStates(state);
             if (nextStates.Count == 0)
+            {
                 return long.MinValue;
+            }
 
             foreach (var nextState in nextStates)
             {
-                var newVal = maxNodeValue(nextState, currDepth + 1);
-                value += newVal/nextStates.Count;
+                var newVal = this.maxNodeValue(nextState, currDepth + 1);
+                value += newVal / nextStates.Count;
             }
 
             return value;
@@ -79,11 +95,13 @@ namespace AI2048.AI
             var value = long.MaxValue;
             var nextStates = GameLogic.NextPossibleWorldStates(state);
             if (nextStates.Count == 0)
+            {
                 return long.MinValue;
+            }
 
             foreach (var nextState in nextStates)
             {
-                var newVal = maxNodeValue(nextState, currDepth + 1);
+                var newVal = this.maxNodeValue(nextState, currDepth + 1);
                 value = Math.Min(value, newVal);
             }
 

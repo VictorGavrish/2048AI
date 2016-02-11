@@ -1,17 +1,19 @@
-﻿using System;
-using System.Linq;
-using AI2048.Game;
-using NUnit.Framework;
-
-namespace AI2048.Tests
+﻿namespace AI2048.Tests
 {
+    using System;
+    using System.Linq;
+
+    using AI2048.Game;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class GameLogicTests
     {
         [Test]
         public void SimpleUpTest()
         {
-            Test(@"
+            this.Test(@"
 0 0 0 0 
 0 0 0 0 
 0 2 0 0 
@@ -27,7 +29,7 @@ Up
         [Test]
         public void SimpleUpMergeTest()
         {
-            Test(@"
+            this.Test(@"
 0 0 0 0 
 0 2 0 0 
 0 2 0 0 
@@ -43,7 +45,7 @@ Up
         [Test]
         public void ComplexUpTest()
         {
-            Test(@"
+            this.Test(@"
 0 0 0 0 
 0 0 0 2 
 0 2 0 2 
@@ -59,7 +61,7 @@ Up
         [Test]
         public void ComplexDownTest()
         {
-            Test(@"
+            this.Test(@"
 2 8 4 0 
 8 0 0 0 
 0 0 0 0 
@@ -75,7 +77,7 @@ Down
         [Test]
         public void ComplexLeftTest()
         {
-            Test(@"
+            this.Test(@"
 0 2 2 4 
 0 0 0 8 
 2 0 0 4 
@@ -91,7 +93,7 @@ Left
         [Test]
         public void ComplexRightTest()
         {
-            Test(@"
+            this.Test(@"
 0 0 0 0 
 4 0 0 0 
 8 0 0 0 
@@ -106,7 +108,7 @@ Right
 
         private void Test(string @case)
         {
-            var testCase = parse(@case);
+            var testCase = this.parse(@case);
 
             var grid = testCase.Item1;
             var move = testCase.Item2;
@@ -118,10 +120,10 @@ Right
 
         public Tuple<Grid, Move, Grid> parse(string testCase)
         {
-            var lines = testCase.Split('\n').Select(l=>l.Trim()).ToArray();
+            var lines = testCase.Split('\n').Select(l => l.Trim()).ToArray();
             var init = new Grid(lines.Skip(1).Take(4).ToArray());
             var exp = new Grid(lines.Skip(7).Take(4).ToArray());
-            var move = (Move) Enum.Parse(typeof (Move), lines[6]);
+            var move = (Move)Enum.Parse(typeof(Move), lines[6]);
 
             return Tuple.Create(init, move, exp);
         }
