@@ -4,19 +4,22 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using AI2048.AI.Victor;
     using AI2048.Game;
 
     public class TwoTurnsAheadAgent : Agent
     {
+        private readonly Func<Grid, long> heuristic;
+
         public TwoTurnsAheadAgent(Func<Grid, long> heurstk)
-            : base(heurstk)
         {
+            this.heuristic = heurstk;
         }
 
         public override Move MakeDecision(Grid state)
         {
             var simulationResults = new Dictionary<Move, long>();
-            foreach (var move in this.Moves)
+            foreach (var move in Moves)
             {
                 var newState = GameLogic.MakeMove(state, move);
                 if (newState == state)
@@ -37,7 +40,7 @@
         public KeyValuePair<Move, long> MakeMoveDecision(Grid state)
         {
             var simulationResults = new Dictionary<Move, long>();
-            foreach (var move in this.Moves)
+            foreach (var move in Moves)
             {
                 var newState = GameLogic.MakeMove(state, move);
                 if (newState == state)
@@ -45,7 +48,7 @@
                     continue; // don't make unnecessary moves
                 }
 
-                simulationResults.Add(move, this.Heuristic(newState));
+                simulationResults.Add(move, this.heuristic(newState));
             }
 
             var decision = simulationResults.OrderByDescending(p => p.Value).First();

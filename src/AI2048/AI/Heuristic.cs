@@ -53,7 +53,7 @@
                     var max = heu(state);
                     for (var r = 0; r < 3; r++)
                     {
-                        state = GameLogic.RotateCW(state);
+                        state = GameLogic.RotateCw(state);
                         max = Math.Max(max, heu(state));
                     }
 

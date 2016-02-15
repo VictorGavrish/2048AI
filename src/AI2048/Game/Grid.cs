@@ -1,38 +1,12 @@
 ﻿namespace AI2048.Game
 {
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
 
-    public class Grid
+    public class Grid : IEnumerable<GridCell>
     {
-        protected bool Equals(Grid other)
-        {
-            return Equals(this.grid, other.grid);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-            if (obj.GetType() != this.GetType())
-            {
-                return false;
-            }
-            return Equals((Grid)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return (this.grid != null ? this.grid.GetHashCode() : 0);
-        }
-
         private readonly int[,] grid;
 
         public Grid(int[,] grid)
@@ -55,27 +29,80 @@
             this.grid = grid;
         }
 
-        public int this[int x, int y]
-        {
-            get
-            {
-                return this.grid[x, y];
-            }
-        }
+        public int EmptyCellsNo => this.grid.Cast<int>().Count(i => i == 0);
+
+        public int this[int x, int y] => this.grid[x, y];
 
         public int[,] CloneMatrix()
         {
             return (int[,])this.grid.Clone();
         }
 
+        public int[] Flatten()
+        {
+            return this.grid.Cast<int>().ToArray();
+        }
+
+        public int[] GetColumn(int x)
+        {
+            var res = new int[4];
+            for (var i = 0; i < 4; i++)
+            {
+                res[i] = this.grid[x, i];
+            }
+
+            return res;
+        }
+
+        public int[] GetRow(int y)
+        {
+            var res = new int[4];
+            for (var i = 0; i < 4; i++)
+            {
+                res[i] = this.grid[i, y];
+            }
+
+            return res;
+        }
+
+        public int SummAll()
+        {
+            var sum = 0;
+            for (var x = 0; x < this.grid.GetLength(0); x++)
+            {
+                for (var y = 0; y < this.grid.GetLength(0); y++)
+                {
+                    sum += this.grid[x, y];
+                }
+            }
+
+            return sum;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+
+        public IEnumerator<GridCell> GetEnumerator()
+        {
+            for (var y = 0; y < this.grid.GetLength(0); y++)
+            {
+                for (var x = 0; x < this.grid.GetLength(1); x++)
+                {
+                    yield return new GridCell(this.grid[x, y], x, y);
+                }
+            }
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
-            for (var y = 0; y < this.grid.GetLength(0); y++)
+            for (var x = 0; x < this.grid.GetLength(1); x++)
             {
-                for (var x = 0; x < this.grid.GetLength(0); x++)
+                for (var y = 0; y < this.grid.GetLength(0); y++)
                 {
-                    sb.Append(this.grid[x, y] + " ");
+                    sb.Append($"{this.grid[x, y],5}");
                 }
 
                 sb.AppendLine();
@@ -96,7 +123,7 @@
                 return false;
             }
 
-            return first.ToString() == second.ToString(); // yeh, this is not the slowest operation here))
+            return first.grid.Cast<int>().SequenceEqual(second.grid.Cast<int>());
         }
 
         public static bool operator !=(Grid first, Grid second)
@@ -114,74 +141,36 @@
             return !(first == second);
         }
 
-        public int[] GetRow(int y)
+        public override bool Equals(object obj)
         {
-            var res = new int[4];
-            for (var i = 0; i < 4; i++)
+            if (ReferenceEquals(null, obj))
             {
-                res[i] = this.grid[i, y];
+                return false;
             }
 
-            return res;
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return this.Equals((Grid)obj);
         }
 
-        public int[] GetColumn(int x)
+        protected bool Equals(Grid other)
         {
-            var res = new int[4];
-            for (var i = 0; i < 4; i++)
-            {
-                res[i] = this.grid[x, i];
-            }
-
-            return res;
+            return Equals(this.grid, other.grid);
         }
-
-        public int SummAll()
+        
+        public override int GetHashCode()
         {
-            var sum = 0;
-            for (var x = 0; x < this.grid.GetLength(0); x++)
-            {
-                for (var y = 0; y < this.grid.GetLength(0); y++)
-                {
-                    sum += this.grid[x, y];
-                }
-            }
+            var flattened = this.grid.Cast<int>().ToArray();
 
-            return sum;
-        }
-
-        public int EmptyCellsNo
-        {
-            get
-            {
-                var n = 0;
-                for (var x = 0; x < this.grid.GetLength(0); x++)
-                {
-                    for (var y = 0; y < this.grid.GetLength(0); y++)
-                    {
-                        if (this.grid[x, y] == 0)
-                        {
-                            n++;
-                        }
-                    }
-                }
-
-                return n;
-            }
-        }
-
-        public int[] Flatten()
-        {
-            var res = new List<int>();
-            for (var x = 0; x < this.grid.GetLength(0); x++)
-            {
-                for (var y = 0; y < this.grid.GetLength(0); y++)
-                {
-                    res.Add(this.grid[x, y]);
-                }
-            }
-
-            return res.ToArray();
+            return flattened.Aggregate(flattened.Length, (current, t) => unchecked(current * 314159 + t));
         }
     }
 }

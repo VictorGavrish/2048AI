@@ -6,6 +6,13 @@
 
     public class GameLogic
     {
+        public static IEnumerable<Grid> MakeMovePossibleStates(Grid grid, Move move)
+        {
+            var newState = MakeMove(grid, move);
+
+            return NextPossibleWorldStates(newState);
+        }
+
         public static Grid MakeMove(Grid grid, Move move)
         {
             var newGrid = new int[4, 4];
@@ -14,7 +21,7 @@
                 case Move.Left:
                     for (var y = 0; y < 4; y++)
                     {
-                        var nonZeroes = merge(grid.GetRow(y).Where(n => n != 0).ToArray());
+                        var nonZeroes = Merge(grid.GetRow(y).Where(n => n != 0).ToArray());
                         var l = nonZeroes.Length;
                         for (var i = 0; i < l; i++)
                         {
@@ -27,7 +34,7 @@
                     for (var y = 0; y < 4; y++)
                     {
                         var nonZeroes =
-                            merge(grid.GetRow(y).Where(n => n != 0).ToArray().Reverse().ToArray()).Reverse().ToArray();
+                            Merge(grid.GetRow(y).Where(n => n != 0).Reverse().ToArray()).Reverse().ToArray();
                         var l = nonZeroes.Length;
                         for (var i = 0; i < l; i++)
                         {
@@ -39,7 +46,7 @@
                 case Move.Up:
                     for (var x = 0; x < 4; x++)
                     {
-                        var nonZeroes = merge(grid.GetColumn(x).Where(n => n != 0).ToArray());
+                        var nonZeroes = Merge(grid.GetColumn(x).Where(n => n != 0).ToArray());
                         var l = nonZeroes.Length;
                         for (var i = 0; i < l; i++)
                         {
@@ -52,7 +59,7 @@
                     for (var x = 0; x < 4; x++)
                     {
                         var nonZeroes =
-                            merge(grid.GetColumn(x).Where(n => n != 0).ToArray().Reverse().ToArray())
+                            Merge(grid.GetColumn(x).Where(n => n != 0).ToArray().Reverse().ToArray())
                                 .Reverse()
                                 .ToArray();
                         var l = nonZeroes.Length;
@@ -64,13 +71,13 @@
 
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("move");
+                    throw new ArgumentOutOfRangeException(nameof(move));
             }
 
             return new Grid(newGrid);
         }
 
-        private static int[] merge(int[] line)
+        private static int[] Merge(int[] line)
         {
             if (line.Length <= 1)
             {
@@ -133,7 +140,7 @@
         /// <summary>
         /// Rotates the grid clockwise
         /// </summary>
-        public static Grid RotateCW(Grid grid)
+        public static Grid RotateCw(Grid grid)
         {
             var newGrid = new int[4, 4];
             for (var x = 0; x < 4; x++)
@@ -147,24 +154,26 @@
             return new Grid(newGrid);
         }
 
-        public static List<Grid> NextPossibleWorldStates(Grid state)
+        public static IEnumerable<Grid> NextPossibleWorldStates(Grid state)
         {
-            var nextStates = new List<Grid>();
             for (var x = 0; x < 4; x++)
             {
                 for (var y = 0; y < 4; y++)
                 {
-                    if (state[x, y] == 0)
+                    if (state[x, y] != 0)
                     {
-                        var newState = state.CloneMatrix();
-                        newState[x, y] = 2;
-
-                        nextStates.Add(new Grid(newState));
+                        continue;
                     }
+
+                    var newStateWith2 = state.CloneMatrix();
+                    newStateWith2[x, y] = 2;
+                    yield return new Grid(newStateWith2);
+
+                    var newStateWith4 = state.CloneMatrix();
+                    newStateWith4[x, y] = 4;
+                    yield return new Grid(newStateWith4);
                 }
             }
-
-            return nextStates;
         }
     }
 }

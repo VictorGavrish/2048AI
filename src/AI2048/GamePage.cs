@@ -41,7 +41,7 @@
                     this.gameEl.SendKeys(Keys.Down);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("move");
+                    throw new ArgumentOutOfRangeException(nameof(move));
             }
         }
 

@@ -4,6 +4,7 @@
     using System.Drawing.Imaging;
 
     using AI2048.AI;
+    using AI2048.AI.Victor;
 
     using NUnit.Framework;
 
@@ -13,12 +14,12 @@
         [Test]
         public void RunSimulation()
         {
-            var agent = new OptiminiOptimaxAgent(Heuristic.AllRotatiions(Heuristic.CornerVave));
-
             for (var i = 0; i < 10; i++)
             {
                 using (var game = new GamePage())
                 {
+                    var agent = new VictorAgent();
+
                     while (game.CanMove)
                     {
                         var move = agent.MakeDecision(game.GridState);

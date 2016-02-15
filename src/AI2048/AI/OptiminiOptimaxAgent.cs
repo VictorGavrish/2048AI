@@ -4,24 +4,23 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using AI2048.AI.Victor;
     using AI2048.Game;
 
     public class OptiminiOptimaxAgent : Agent
     {
         public const int MaxDepth = 3;
 
+        private readonly Func<Grid, long> heuristic;
+
         public OptiminiOptimaxAgent(Func<Grid, long> heurstk)
-            : base(heurstk)
         {
+            this.heuristic = heurstk;
         }
 
         public override Move MakeDecision(Grid state)
         {
-            var simulationResults = new Dictionary<Move, long>();
-            foreach (var move in this.Moves)
-            {
-                simulationResults.Add(move, this.evaluateMove(state, move));
-            }
+            var simulationResults = Moves.ToDictionary(move => move, move => this.EvaluateMove(state, move));
 
             var decision = simulationResults.OrderByDescending(p => p.Value).First();
 
@@ -29,26 +28,23 @@
             return decision.Key;
         }
 
-        public long evaluateMove(Grid state, Move move)
+        public long EvaluateMove(Grid state, Move move)
         {
             var newState = GameLogic.MakeMove(state, move);
-            if (newState == state)
-            {
-                return long.MinValue;
-            }
-
-            return this.maxNodeValue(newState, 0);
+            return newState == state ? long.MinValue : this.MaxNodeValue(newState, 0);
         }
 
-        public long maxNodeValue(Grid state, int currDepth)
+        public long MaxNodeValue(Grid state, int currDepth)
         {
+            var a = 3;
+
             if (currDepth >= MaxDepth)
             {
-                return this.Heuristic(state);
+                return this.heuristic(state);
             }
 
             var value = long.MinValue;
-            foreach (var move in this.Moves)
+            foreach (var move in Moves)
             {
                 var newState = GameLogic.MakeMove(state, move);
                 if (newState == state)
@@ -56,15 +52,9 @@
                     continue;
                 }
 
-                long newVal;
-                if (state.EmptyCellsNo > 3)
-                {
-                    newVal = this.randomNodeValue(newState, currDepth + 1);
-                }
-                else
-                {
-                    newVal = this.minNodeValue(newState, currDepth + 1);
-                }
+                var newVal = state.EmptyCellsNo > 3 
+                    ? this.RandomNodeValue(newState, currDepth + 1) 
+                    : this.MinNodeValue(newState, currDepth + 1);
 
                 value = Math.Max(value, newVal);
             }
@@ -72,36 +62,38 @@
             return value;
         }
 
-        public long randomNodeValue(Grid state, int currDepth)
+        public long RandomNodeValue(Grid state, int currDepth)
         {
             var value = 0L;
             var nextStates = GameLogic.NextPossibleWorldStates(state);
-            if (nextStates.Count == 0)
+            if (nextStates.Count() == 0)
             {
                 return long.MinValue;
             }
 
             foreach (var nextState in nextStates)
             {
-                var newVal = this.maxNodeValue(nextState, currDepth + 1);
-                value += newVal / nextStates.Count;
+                var newVal = this.MaxNodeValue(nextState, currDepth + 1);
+                
+                value += newVal / nextStates.Count();
             }
 
             return value;
         }
 
-        public long minNodeValue(Grid state, int currDepth)
+        public long MinNodeValue(Grid state, int currDepth)
         {
             var value = long.MaxValue;
             var nextStates = GameLogic.NextPossibleWorldStates(state);
-            if (nextStates.Count == 0)
+
+            if (nextStates.Count() == 0)
             {
                 return long.MinValue;
             }
 
             foreach (var nextState in nextStates)
             {
-                var newVal = this.maxNodeValue(nextState, currDepth + 1);
+                var newVal = this.MaxNodeValue(nextState, currDepth + 1);
                 value = Math.Min(value, newVal);
             }
 

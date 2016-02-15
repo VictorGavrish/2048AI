@@ -52,9 +52,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI\Agent.cs" />
+    <Compile Include="AI\GameOverException.cs" />
     <Compile Include="AI\Heuristic.cs" />
     <Compile Include="AI\OptiminiOptimaxAgent.cs" />
     <Compile Include="AI\TwoTurnsAheadAgent.cs" />
+    <Compile Include="AI\Victor\CombinedStrategy.cs" />
+    <Compile Include="AI\Victor\Node.cs" />
+    <Compile Include="AI\Victor\VictorAgent.cs" />
+    <Compile Include="Game\GridCell.cs" />
     <Compile Include="Game\Move.cs" />
     <Compile Include="Tests\EmulaturSelfCheckTests.cs" />
     <Compile Include="Tests\GameLogicTests.cs" />

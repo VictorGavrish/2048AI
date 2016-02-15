@@ -42,16 +42,16 @@
 
         private void Test(string @case)
         {
-            var testCase = this.parse(@case);
+            var testCase = this.Parse(@case);
 
             var grid = testCase.Item1;
             var expected = testCase.Item2;
 
-            var resGrid = GameLogic.RotateCW(grid);
+            var resGrid = GameLogic.RotateCw(grid);
             Assert.That(resGrid.ToString(), Is.EqualTo(expected.ToString()));
         }
 
-        public Tuple<Grid, Grid> parse(string testCase)
+        public Tuple<Grid, Grid> Parse(string testCase)
         {
             var lines = testCase.Split('\n').Select(l => l.Trim()).ToArray();
             var init = new Grid(lines.Skip(1).Take(4).ToArray());
