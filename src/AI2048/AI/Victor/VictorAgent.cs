@@ -7,7 +7,7 @@ namespace AI2048.AI.Victor
 
     public class VictorAgent : Agent
     {
-        private Node rootNode;
+        private PlayerNode rootPlayerNode;
 
         public List<Grid> History { get; } = new List<Grid>();
 
@@ -15,15 +15,16 @@ namespace AI2048.AI.Victor
         {
             this.History.Add(state);
 
-            this.rootNode = this.rootNode?.ChildNodes.FirstOrDefault(n => n.State == state) ?? new Node(state);
-            this.rootNode.MakeRoot();
+            this.rootPlayerNode = this.rootPlayerNode?.Children.SelectMany(kvp => kvp.Value.Children).FirstOrDefault(n => n.State == state) 
+                ?? new PlayerNode(state);
+            this.rootPlayerNode.MakeRoot();
 
-            if (this.rootNode.GameOver)
+            if (this.rootPlayerNode.GameOver)
             {
                 throw new GameOverException();
             }
 
-            var strategy = new CombinedStrategy(this.rootNode);
+            var strategy = new CombinedStrategy(this.rootPlayerNode);
             return strategy.MakeDecision();
         }
     }

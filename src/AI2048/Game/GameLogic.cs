@@ -79,62 +79,52 @@
 
         private static int[] Merge(int[] line)
         {
-            if (line.Length <= 1)
+            switch (line.Length)
             {
-                return line;
-            }
-
-            if (line.Length == 2)
-            {
-                if (line[0] == line[1])
-                {
-                    return new[] { line[0] * 2 };
-                }
-
-                return line;
-            }
-
-            if (line.Length == 3)
-            {
-                if (line[0] == line[1])
-                {
-                    return new[] { line[0] * 2, line[2] };
-                }
-
-                if (line[1] == line[2])
-                {
-                    return new[] { line[0], line[1] * 2 };
-                }
-
-                return line;
-            }
-
-            if (line.Length == 4)
-            {
-                if (line[0] == line[1])
-                {
-                    if (line[2] == line[3])
+                case 2:
+                    if (line[0] == line[1])
                     {
-                        return new[] { line[0] * 2, line[2] * 2 };
+                        return new[] { line[0] * 2 };
                     }
 
-                    return new[] { line[0] * 2, line[2], line[3] };
-                }
+                    return line;
+                case 3:
+                    if (line[0] == line[1])
+                    {
+                        return new[] { line[0] * 2, line[2] };
+                    }
 
-                if (line[1] == line[2])
-                {
-                    return new[] { line[0], line[1] * 2, line[3] };
-                }
+                    if (line[1] == line[2])
+                    {
+                        return new[] { line[0], line[1] * 2 };
+                    }
 
-                if (line[2] == line[3])
-                {
-                    return new[] { line[0], line[1], line[2] * 2 };
-                }
+                    return line;
+                case 4:
+                    if (line[0] == line[1])
+                    {
+                        if (line[2] == line[3])
+                        {
+                            return new[] { line[0] * 2, line[2] * 2 };
+                        }
 
-                return line;
+                        return new[] { line[0] * 2, line[2], line[3] };
+                    }
+
+                    if (line[1] == line[2])
+                    {
+                        return new[] { line[0], line[1] * 2, line[3] };
+                    }
+
+                    if (line[2] == line[3])
+                    {
+                        return new[] { line[0], line[1], line[2] * 2 };
+                    }
+
+                    return line;
+                default:
+                    return line;
             }
-
-            return line;
         }
 
         /// <summary>
