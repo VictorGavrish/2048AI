@@ -11,7 +11,7 @@
     {
         private static readonly Move[] Moves = { Move.Up, Move.Left, Move.Down, Move.Right };
 
-        public MaximizingNode(Grid state, MinimizingNode parentNode, Func<Node, double> heuristic)
+        public MaximizingNode(LogGrid state, MinimizingNode parentNode, Func<Node, double> heuristic)
             : base(heuristic)
         {
             this.State = state;
@@ -21,7 +21,7 @@
             this.childrenByMoveLazy = new Lazy<Dictionary<Move, MinimizingNode>>(this.GetChildrenByMove);
         }
 
-        public MaximizingNode(Grid state, Func<Node, double> heuristic)
+        public MaximizingNode(LogGrid state, Func<Node, double> heuristic)
             : this(state, null, heuristic)
         {
         }
@@ -30,18 +30,18 @@
         private bool isRootNode;
         public MaximizingNode RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
 
-        private ConcurrentDictionary<Grid, MaximizingNode> knownPlayerNodes;
-        public ConcurrentDictionary<Grid, MaximizingNode> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
+        private ConcurrentDictionary<LogGrid, MaximizingNode> knownPlayerNodes;
+        public ConcurrentDictionary<LogGrid, MaximizingNode> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
 
-        private ConcurrentDictionary<Grid, MinimizingNode> knownComputerNodes;
-        public ConcurrentDictionary<Grid, MinimizingNode> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
+        private ConcurrentDictionary<LogGrid, MinimizingNode> knownComputerNodes;
+        public ConcurrentDictionary<LogGrid, MinimizingNode> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
 
         public void MakeRoot()
         {
             this.isRootNode = true;
             this.parentNode = null;
-            this.knownPlayerNodes = new ConcurrentDictionary<Grid, MaximizingNode>();
-            this.knownComputerNodes = new ConcurrentDictionary<Grid, MinimizingNode>();
+            this.knownPlayerNodes = new ConcurrentDictionary<LogGrid, MaximizingNode>();
+            this.knownComputerNodes = new ConcurrentDictionary<LogGrid, MinimizingNode>();
         }
 
         public Dictionary<Move, MinimizingNode> Children => this.childrenByMoveLazy.Value;
@@ -52,9 +52,10 @@
 
             foreach (var move in this.PossibleMoves)
             {
-                var newState = GameLogic.MakeMove(this.State, move);
+                var newState = this.State.MakeMove(move);
 
                 MinimizingNode minimizingNode;
+
                 if (!this.KnownComputerNodes.TryGetValue(newState, out minimizingNode))
                 {
                     minimizingNode = this.KnownComputerNodes.GetOrAdd(newState, new MinimizingNode(newState, this, this.Heuristic));
@@ -68,8 +69,7 @@
 
         public IEnumerable<Move> PossibleMoves => this.possibleMovesLazy.Value;
         private readonly Lazy<IEnumerable<Move>> possibleMovesLazy;
-
-        private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => this.State != GameLogic.MakeMove(this.State, move));
+        private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => !this.State.Equals(this.State.MakeMove(move)));
 
         public bool GameOver => !this.PossibleMoves.Any();
     }

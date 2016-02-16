@@ -1,7 +1,6 @@
 namespace AI2048.AI.Victor
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -12,7 +11,7 @@ namespace AI2048.AI.Victor
 
     public class CombinedStrategy
     {
-        private const int RiskOfDeathSearchDepth = 13;
+        private const int RiskOfDeathSearchDepth = 11;
 
         private const int SafeFreeCellsCount = 3;
 
@@ -35,7 +34,7 @@ namespace AI2048.AI.Victor
             LogEvaluation(this.rootMaximizingNode, evaluationDictionary);
             Console.WriteLine("End calcualtion, taken: {0}", sw.Elapsed);
             Console.WriteLine($"Max pruned: {maxCount}");
-            Console.WriteLine($"Max pruned: {minCount}");
+            Console.WriteLine($"Min pruned: {minCount}");
 
             maxCount = minCount = 0;
 
@@ -49,17 +48,17 @@ namespace AI2048.AI.Victor
             var searchDepth = this.GetPositionEvaluationSearchDepth();
 
             var positionEvaluationResult = this.rootMaximizingNode.Children.ToDictionary(
-                kvp => kvp.Key,
+                kvp => kvp.Key, 
                 kvp => GetPositionEvaluation(kvp.Value, searchDepth, double.NegativeInfinity, double.PositiveInfinity));
 
             return positionEvaluationResult;
         }
 
-        private IDictionary<Move, bool> GetRiskOfDeathEvaluation()
+        private IDictionary<Move, double> GetRiskOfDeathEvaluation()
         {
             var result = this.rootMaximizingNode.Children.ToDictionary(
-                kvp => kvp.Key,
-                kvp => GetRiskOfDeath(kvp.Value, RiskOfDeathSearchDepth));
+                kvp => kvp.Key, 
+                kvp => GetRiskOfDeath(kvp.Value, RiskOfDeathSearchDepth) ? (double)DeathEvaluation : 0);
 
             return result;
         }
@@ -75,15 +74,15 @@ namespace AI2048.AI.Victor
 
             var result = new Dictionary<Move, double>
             {
-                { Move.Up, double.NegativeInfinity },
-                { Move.Down, double.NegativeInfinity },
-                { Move.Left, double.NegativeInfinity },
+                { Move.Up, double.NegativeInfinity }, 
+                { Move.Down, double.NegativeInfinity }, 
+                { Move.Left, double.NegativeInfinity }, 
                 { Move.Right, double.NegativeInfinity }
             };
 
             foreach (var move in this.rootMaximizingNode.PossibleMoves)
             {
-                result[move] = riskOfDeathDictionary[move] ? DeathEvaluation : positionEvaluationDictionary[move];
+                result[move] = riskOfDeathDictionary[move] + positionEvaluationDictionary[move];
             }
 
             return result;
@@ -91,7 +90,17 @@ namespace AI2048.AI.Victor
 
         private int GetPositionEvaluationSearchDepth()
         {
-            var depth = 3;
+            var depth = 2;
+
+            if (this.rootMaximizingNode.EmptyCellCount < SafeFreeCellsCount)
+            {
+                depth = 3;
+            }
+
+            if (this.rootMaximizingNode.EmptyCellCount == 0)
+            {
+                depth = 4;
+            }
 
             Console.WriteLine("Searching with depth {0}", depth);
 
@@ -105,7 +114,8 @@ namespace AI2048.AI.Victor
                 return true;
             }
 
-            if (depth == 0 || maximizingNode.EmptyCellCount >= SafeFreeCellsCount || maximizingNode.EmptyCellCount >= depth * 2)
+            if (depth == 0 || maximizingNode.EmptyCellCount >= SafeFreeCellsCount
+                || maximizingNode.EmptyCellCount >= depth * 2)
             {
                 return false;
             }
@@ -115,21 +125,11 @@ namespace AI2048.AI.Victor
 
         private static bool GetRiskOfDeath(MinimizingNode minimizingNode, int depth)
         {
-            if (minimizingNode.GameOver)
-            {
-                return true;
-            }
-
-            if (depth == 0 || minimizingNode.EmptyCellCount >= SafeFreeCellsCount || minimizingNode.EmptyCellCount >= depth * 2)
-            {
-                return false;
-            }
-
             return minimizingNode.Children.Any(child => GetRiskOfDeath(child, depth - 1));
         }
 
-        private static int maxCount = 0;
-        
+        private static int maxCount;
+
         private static double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
         {
             if (maximizingNode.GameOver)
@@ -153,7 +153,7 @@ namespace AI2048.AI.Victor
             return max;
         }
 
-        private static int minCount = 0;
+        private static int minCount;
 
         private static double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double alpha, double beta)
         {
@@ -173,7 +173,7 @@ namespace AI2048.AI.Victor
                 }
 
                 beta = Math.Min(beta, min);
-                
+
                 if (beta <= alpha)
                 {
                     Interlocked.Increment(ref minCount);
@@ -189,16 +189,16 @@ namespace AI2048.AI.Victor
             Console.WriteLine(node.State.ToString());
 
             Console.WriteLine(
-                "Left:  {0}",
+                "Left:  {0}", 
                 evaluationDictionary.ContainsKey(Move.Left) ? evaluationDictionary[Move.Left].ToString() : "null");
             Console.WriteLine(
-                "Right: {0}",
+                "Right: {0}", 
                 evaluationDictionary.ContainsKey(Move.Right) ? evaluationDictionary[Move.Right].ToString() : "null");
             Console.WriteLine(
-                "Up:    {0}",
+                "Up:    {0}", 
                 evaluationDictionary.ContainsKey(Move.Up) ? evaluationDictionary[Move.Up].ToString() : "null");
             Console.WriteLine(
-                "Down:  {0}",
+                "Down:  {0}", 
                 evaluationDictionary.ContainsKey(Move.Down) ? evaluationDictionary[Move.Down].ToString() : "null");
         }
     }

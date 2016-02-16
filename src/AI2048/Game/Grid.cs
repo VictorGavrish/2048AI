@@ -3,6 +3,7 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Text;
 
     public class Grid : IEnumerable<GridCell>
@@ -123,7 +124,7 @@
                 return false;
             }
 
-            return first.Equals(second);
+            return SequenceEqual(first.grid, second.grid);
         }
 
         public static bool operator !=(Grid first, Grid second)
@@ -138,41 +139,37 @@
                 return false;
             }
 
-            return !(first == second);
+            return !SequenceEqual(first.grid, second.grid);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (!(obj is Grid))
-            {
-                return false;
-            }
-
-            return this.Equals((Grid)obj);
+            return SequenceEqual(this.grid, ((Grid)obj).grid);
         }
 
         public bool Equals(Grid other)
         {
-            return this.grid[0, 0] == other.grid[0, 0] && this.grid[0, 1] == other.grid[0, 1]
-                   && this.grid[0, 2] == other.grid[0, 2] && this.grid[0, 3] == other.grid[0, 3]
-                   && this.grid[1, 0] == other.grid[1, 0] && this.grid[1, 1] == other.grid[1, 1]
-                   && this.grid[1, 2] == other.grid[1, 2] && this.grid[1, 3] == other.grid[1, 3]
-                   && this.grid[2, 0] == other.grid[2, 0] && this.grid[2, 1] == other.grid[2, 1]
-                   && this.grid[2, 2] == other.grid[2, 2] && this.grid[2, 3] == other.grid[2, 3]
-                   && this.grid[3, 0] == other.grid[3, 0] && this.grid[3, 1] == other.grid[3, 1]
-                   && this.grid[3, 2] == other.grid[3, 2] && this.grid[3, 3] == other.grid[3, 3];
+            return SequenceEqual(this.grid, other.grid);
         }
-        
+
+        public static void Test()
+        {
+            var first = new[,] { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 }, { 13, 14, 15, 16 } };
+            var second = new[,] { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 }, { 13, 14, 15, 16 } };
+
+            var equal = SequenceEqual(first, second);
+        }
+
+
+        private static bool SequenceEqual(int[,] first, int[,] second)
+        {
+            return memcmp(first, second, Marshal.SizeOf(typeof(int)) * first.Length) == 0;
+        }
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int memcmp(int[,] first, int[,] second, int count);
+
+
         public override int GetHashCode()
         {
             return unchecked(

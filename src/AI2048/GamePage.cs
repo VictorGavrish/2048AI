@@ -69,13 +69,15 @@
                                 .Split(' ')
                                 .First(c => c.StartsWith("tile-position-"))
                                 .Replace("tile-position-", string.Empty);
-                        var x = int.Parse(positionStr[0].ToString()) - 1;
-                        var y = int.Parse(positionStr[2].ToString()) - 1;
+                        var x = int.Parse(positionStr[2].ToString()) - 1;
+                        var y = int.Parse(positionStr[0].ToString()) - 1;
                         grid[x, y] = int.Parse(tl.Text);
                     }
 
                     return new Grid(grid);
                 });
+
+        public LogGrid State => new LogGrid(this.GridState.CloneMatrix());
 
         /// <remarks>
         /// tile format is: <div class="tile tile-32 tile-position-2-1 tile-merged">32</div>
@@ -95,8 +97,8 @@
                                 .Split(' ')
                                 .First(c => c.StartsWith("tile-position-"))
                                 .Replace("tile-position-", string.Empty);
-                        var x = int.Parse(positionStr[0].ToString()) - 1;
-                        var y = int.Parse(positionStr[2].ToString()) - 1;
+                        var x = int.Parse(positionStr[2].ToString()) - 1;
+                        var y = int.Parse(positionStr[0].ToString()) - 1;
                         grid[x, y] = int.Parse(tl.Text);
                     }
 

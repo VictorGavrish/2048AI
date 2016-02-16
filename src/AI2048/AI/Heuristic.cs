@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
 
+    using AI2048.AI.Victor;
     using AI2048.Game;
 
     public static class Heuristic
@@ -46,6 +47,21 @@
                 return h;
             };
 
+        public static Func<Node, double> AllRotations(Func<Node, double> heuristic)
+        {
+            return node =>
+                {
+                    var max = heuristic(node);
+                    for (var r = 0; r < 3; r++)
+                    {
+                        node = node.Rotate();
+                        max = Math.Max(max, heuristic(node));
+                    }
+
+                    return max;
+                };
+        }
+
         public static Func<Grid, long> AllRotatiions(Func<Grid, long> heu)
         {
             return state =>
@@ -59,6 +75,14 @@
 
                     return max;
                 };
+        }
+    }
+
+    public static class NodeExtensions
+    {
+        public static Node Rotate(this Node node)
+        {
+            throw new NotImplementedException();
         }
     }
 }

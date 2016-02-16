@@ -11,7 +11,7 @@
     {
         private readonly MaximizingNode parentNode;
 
-        public MinimizingNode(Grid state, MaximizingNode parentNode, Func<Node, double> heuristic)
+        public MinimizingNode(LogGrid state, MaximizingNode parentNode, Func<Node, double> heuristic)
             : base(heuristic)
         {
             this.parentNode = parentNode;
@@ -22,17 +22,15 @@
 
         public MaximizingNode RootMaximizingNode => this.parentNode.RootMaximizingNode;
         
-        public ConcurrentDictionary<Grid, MaximizingNode> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
+        public ConcurrentDictionary<LogGrid, MaximizingNode> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
 
-        public ConcurrentDictionary<Grid, MinimizingNode> KnownComputerNodes => this.parentNode.KnownComputerNodes;
-
-        public bool GameOver => this.parentNode.GameOver;
+        public ConcurrentDictionary<LogGrid, MinimizingNode> KnownComputerNodes => this.parentNode.KnownComputerNodes;
 
         public IEnumerable<MaximizingNode> Children => this.childrenLazy.Value;
         private readonly Lazy<IEnumerable<MaximizingNode>> childrenLazy;
         private IEnumerable<MaximizingNode> GetChildren()
         {
-            var possibleStates = GameLogic.NextPossibleWorldStates(this.State);
+            var possibleStates = this.State.NextPossibleWorldStates();
             foreach (var possibleState in possibleStates)
             {
                 MaximizingNode maximizingNode;

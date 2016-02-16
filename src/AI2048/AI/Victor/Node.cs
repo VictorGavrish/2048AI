@@ -22,7 +22,7 @@
             this.monotonicityLazy = new Lazy<double>(this.GetMonotonicity);
             this.smoothnessLazy = new Lazy<double>(this.GetSmoothness);
         }
-        public Grid State { get; protected set; }
+        public LogGrid State { get; protected set; }
 
         public readonly Func<Node, double> Heuristic;
         private readonly Lazy<double> heuristicLazy;
@@ -30,7 +30,7 @@
         
         public int EmptyCellCount => this.emptyCellCountLazy.Value;
         private readonly Lazy<int> emptyCellCountLazy;
-        private int GetEmptyCellCount() => this.State.EmptyCellsNo;
+        private int GetEmptyCellCount() => this.State.EmptyCellCount;
 
         public double EmptyCellEvalution => this.emptyCellEvalutionLazy.Value;
         private readonly Lazy<double> emptyCellEvalutionLazy;
@@ -38,7 +38,7 @@
 
         public double MaxValueEvaluation => this.maxValueEvalutionLazy.Value;
         private readonly Lazy<double> maxValueEvalutionLazy;
-        private double GetMaxValueEvalution() => Math.Log(this.State.Flatten().Max()) / Log2;
+        private double GetMaxValueEvalution() => this.State.Flatten().Max() / Log2;
 
         public double Smoothness => this.smoothnessLazy.Value;
         private readonly Lazy<double> smoothnessLazy;
@@ -47,19 +47,19 @@
             double smoothness = 0;
             foreach (var cell in this.State.Where(c => c.Value != 0))
             {
-                var value = Math.Log(cell.Value) / Log2;
+                var value = cell.Value / Log2;
 
                 foreach (var neighbor in this.GetNeighbors(cell))
                 {
-                    var neighborValue = Math.Log(neighbor.Value) / Log2;
-                    smoothness -= Math.Abs(value - neighborValue);
+                    var neighborValue = neighbor.Value / Log2;
+                    smoothness = smoothness - Math.Abs(value - neighborValue);
                 }
             }
 
             return smoothness;
         }
 
-        private IEnumerable<GridCell> GetNeighbors(GridCell cell)
+        private IEnumerable<GridCell> GetNeighbors(LogGridCell cell)
         {
             for (int x = cell.X + 1; x < 4; x++)
             {
@@ -106,8 +106,8 @@
                         next--;
                     }
 
-                    var currentValue = this.State[x, current] != 0 ? Math.Log(this.State[x, current]) / Log2 : 0;
-                    var nextValue = this.State[x, next] != 0 ? Math.Log(this.State[x, next] / Log2) : 0;
+                    var currentValue = this.State[x, current] != 0 ? this.State[x, current] / Log2 : 0;
+                    var nextValue = this.State[x, next] != 0 ? this.State[x, next] / Log2 : 0;
 
                     if (current > nextValue)
                     {
@@ -142,8 +142,8 @@
                         next--;
                     }
 
-                    var currentValue = this.State[current, y] != 0 ? Math.Log(this.State[current, y]) / Log2 : 0;
-                    var nextValue = this.State[next, y] != 0 ? Math.Log(this.State[next, y] / Log2) : 0;
+                    var currentValue = this.State[current, y] != 0 ? this.State[current, y] / Log2 : 0;
+                    var nextValue = this.State[next, y] != 0 ? this.State[next, y] / Log2 : 0;
 
                     if (currentValue > nextValue)
                     {
