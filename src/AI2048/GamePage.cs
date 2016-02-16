@@ -7,6 +7,7 @@
     using AI2048.Game;
 
     using OpenQA.Selenium;
+    using OpenQA.Selenium.Chrome;
     using OpenQA.Selenium.Firefox;
     using OpenQA.Selenium.Remote;
 
@@ -119,13 +120,13 @@
             }
             catch (StaleElementReferenceException)
             {
-                Thread.Sleep(retry * 200);
+                Thread.Sleep(200);
                 return this.RetryOnSeleniumException(func, retry + 1);
             }
             catch (FormatException)
             {
                 // the world is not yet ready, trying again
-                Thread.Sleep(retry * 200);
+                Thread.Sleep(200);
                 return this.RetryOnSeleniumException(func, retry + 1);
             }
         }

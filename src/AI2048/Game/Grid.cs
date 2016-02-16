@@ -123,7 +123,7 @@
                 return false;
             }
 
-            return first.grid.Cast<int>().SequenceEqual(second.grid.Cast<int>());
+            return first.Equals(second);
         }
 
         public static bool operator !=(Grid first, Grid second)
@@ -153,7 +153,7 @@
                 return true;
             }
 
-            if (obj.GetType() != this.GetType())
+            if (!(obj is Grid))
             {
                 return false;
             }
@@ -161,16 +161,37 @@
             return this.Equals((Grid)obj);
         }
 
-        protected bool Equals(Grid other)
+        public bool Equals(Grid other)
         {
-            return Equals(this.grid, other.grid);
+            return this.grid[0, 0] == other.grid[0, 0] && this.grid[0, 1] == other.grid[0, 1]
+                   && this.grid[0, 2] == other.grid[0, 2] && this.grid[0, 3] == other.grid[0, 3]
+                   && this.grid[1, 0] == other.grid[1, 0] && this.grid[1, 1] == other.grid[1, 1]
+                   && this.grid[1, 2] == other.grid[1, 2] && this.grid[1, 3] == other.grid[1, 3]
+                   && this.grid[2, 0] == other.grid[2, 0] && this.grid[2, 1] == other.grid[2, 1]
+                   && this.grid[2, 2] == other.grid[2, 2] && this.grid[2, 3] == other.grid[2, 3]
+                   && this.grid[3, 0] == other.grid[3, 0] && this.grid[3, 1] == other.grid[3, 1]
+                   && this.grid[3, 2] == other.grid[3, 2] && this.grid[3, 3] == other.grid[3, 3];
         }
         
         public override int GetHashCode()
         {
-            var flattened = this.grid.Cast<int>().ToArray();
-
-            return flattened.Aggregate(flattened.Length, (current, t) => unchecked(current * 314159 + t));
+            return unchecked(
+                this.grid[0, 0] +
+                this.grid[0, 1] * 2 +
+                this.grid[0, 2] * 3 +
+                this.grid[0, 3] * 5 +
+                this.grid[1, 0] * 7 +
+                this.grid[1, 1] * 11 +
+                this.grid[1, 2] * 13 +
+                this.grid[1, 3] * 17 +
+                this.grid[2, 0] * 19 +
+                this.grid[2, 1] * 23 +
+                this.grid[2, 2] * 29 +
+                this.grid[2, 3] * 31 +
+                this.grid[3, 0] * 37 +
+                this.grid[3, 1] * 41 +
+                this.grid[3, 2] * 43 +
+                this.grid[3, 3] * 47);
         }
     }
 }

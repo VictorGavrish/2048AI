@@ -5,6 +5,7 @@ namespace AI2048.AI.Victor
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using AI2048.Game;
@@ -15,13 +16,13 @@ namespace AI2048.AI.Victor
 
         private const int SafeFreeCellsCount = 3;
 
-        private const long DeathEvaluation = -1000000000000000000;
+        private const long DeathEvaluation = -1000000000;
 
-        private readonly PlayerNode rootPlayerNode;
+        private readonly MaximizingNode rootMaximizingNode;
 
-        public CombinedStrategy(PlayerNode rootPlayerNode)
+        public CombinedStrategy(MaximizingNode rootMaximizingNode)
         {
-            this.rootPlayerNode = rootPlayerNode;
+            this.rootMaximizingNode = rootMaximizingNode;
         }
 
         public Move MakeDecision()
@@ -31,93 +32,58 @@ namespace AI2048.AI.Victor
             sw.Start();
             var evaluationDictionary = this.GetEvaluationDictionary();
             sw.Stop();
+            LogEvaluation(this.rootMaximizingNode, evaluationDictionary);
             Console.WriteLine("End calcualtion, taken: {0}", sw.Elapsed);
-            LogEvaluation(this.rootPlayerNode, evaluationDictionary);
+            Console.WriteLine($"Max pruned: {maxCount}");
+            Console.WriteLine($"Max pruned: {minCount}");
+
+            maxCount = minCount = 0;
 
             var decision = evaluationDictionary.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First();
 
             return decision;
         }
 
-        private IDictionary<Move, long> GetEvaluationDictionarySynchronous()
+        private IDictionary<Move, double> GetPositionEvaluation()
         {
-            var riskOfDeathResult = this.rootPlayerNode.Children.ToDictionary(
-                kvp => kvp.Key,
-                kvp => GetRiskOfDeath(kvp.Value, RiskOfDeathSearchDepth));
-
             var searchDepth = this.GetPositionEvaluationSearchDepth();
 
-            IEnumerable<KeyValuePair<Move, ComputerNode>> children = this.rootPlayerNode.Children;
-
-            var safeChildren = riskOfDeathResult.Where(kvp => !kvp.Value);
-
-            if (safeChildren.Any())
-            {
-                children = children.Where(kvp => safeChildren.Any(safekvp => safekvp.Key == kvp.Key));
-            }
-
-            var positionEvaluationResult = children.ToDictionary(
+            var positionEvaluationResult = this.rootMaximizingNode.Children.ToDictionary(
                 kvp => kvp.Key,
-                kvp => GetPositionEvaluation(kvp.Value, searchDepth));
+                kvp => GetPositionEvaluation(kvp.Value, searchDepth, double.NegativeInfinity, double.PositiveInfinity));
 
             return positionEvaluationResult;
         }
 
-        private IDictionary<Move, long> GetEvaluationDictionary()
+        private IDictionary<Move, bool> GetRiskOfDeathEvaluation()
         {
-            var riskOfDeathDictionary = new ConcurrentDictionary<Move, bool>();
-            
-            var riskOfDeathTasks = this.rootPlayerNode.PossibleMoves.Select(
-                move => Task.Run(
-                    () =>
-                        {
-                            var hasRisk =
-                                this.rootPlayerNode.Children[move].Children.Any(
-                                    node => GetRiskOfDeath(node, RiskOfDeathSearchDepth));
-                            riskOfDeathDictionary.TryAdd(move, hasRisk);
-                        })).ToArray();
+            var result = this.rootMaximizingNode.Children.ToDictionary(
+                kvp => kvp.Key,
+                kvp => GetRiskOfDeath(kvp.Value, RiskOfDeathSearchDepth));
 
-            var searchDepth = this.GetPositionEvaluationSearchDepth();
+            return result;
+        }
 
-            var positionEvaluationDictionary = new ConcurrentDictionary<Move, long>();
-            var positionEvaluationTasks = this.rootPlayerNode.PossibleMoves.Select(
-                move => Task.Run(
-                    () =>
-                        {
-                            var positionEvaluation =
-                                this.rootPlayerNode.Children[move].Children.Min(
-                                    node => GetPositionEvaluation(node, searchDepth - 1));
-                            positionEvaluationDictionary.TryAdd(move, positionEvaluation);
-                        })).ToArray();
+        private IDictionary<Move, double> GetEvaluationDictionary()
+        {
+            var riskOfDeathTask = Task.Factory.StartNew(this.GetRiskOfDeathEvaluation);
+            var positionEvaluationTask = Task.Factory.StartNew(this.GetPositionEvaluation);
 
-            Task.WaitAll(riskOfDeathTasks);
+            var riskOfDeathDictionary = riskOfDeathTask.Result;
 
-            if (!riskOfDeathDictionary.All(kvp => kvp.Value))
+            var positionEvaluationDictionary = positionEvaluationTask.Result;
+
+            var result = new Dictionary<Move, double>
             {
-                foreach (var kvp in riskOfDeathDictionary.Where(kvp => kvp.Value))
-                {
-                    this.rootPlayerNode.Children[kvp.Key].MakeTerminal();
-                }
-            }
-
-            Task.WaitAll(positionEvaluationTasks);
-
-            var result = new Dictionary<Move, long>
-            {
-                { Move.Up, long.MinValue },
-                { Move.Down, long.MinValue },
-                { Move.Left, long.MinValue },
-                { Move.Right, long.MinValue }
+                { Move.Up, double.NegativeInfinity },
+                { Move.Down, double.NegativeInfinity },
+                { Move.Left, double.NegativeInfinity },
+                { Move.Right, double.NegativeInfinity }
             };
 
-            foreach (var kvp in riskOfDeathDictionary)
+            foreach (var move in this.rootMaximizingNode.PossibleMoves)
             {
-                result[kvp.Key] = kvp.Value ? DeathEvaluation : 0;
-            }
-
-            foreach (var kvp in positionEvaluationDictionary)
-            {
-                result[kvp.Key] += kvp.Value;
+                result[move] = riskOfDeathDictionary[move] ? DeathEvaluation : positionEvaluationDictionary[move];
             }
 
             return result;
@@ -125,99 +91,100 @@ namespace AI2048.AI.Victor
 
         private int GetPositionEvaluationSearchDepth()
         {
-            var searchDepth = 2;
+            var depth = 3;
 
-            if (this.rootPlayerNode.EmptyCellCount < 10)
-            {
-                searchDepth = 4;
-            }
+            Console.WriteLine("Searching with depth {0}", depth);
 
-            if (this.rootPlayerNode.EmptyCellCount < 2)
-            {
-                searchDepth = 6;
-            }
-
-            return searchDepth;
+            return depth;
         }
 
-        private static bool GetRiskOfDeath(PlayerNode playerNode, int depth)
+        private static bool GetRiskOfDeath(MaximizingNode maximizingNode, int depth)
         {
-            if (playerNode.IsTernminal)
+            if (maximizingNode.GameOver)
             {
                 return true;
             }
 
-            if (depth == 0 || playerNode.EmptyCellCount >= SafeFreeCellsCount || playerNode.EmptyCellCount >= depth * 2)
+            if (depth == 0 || maximizingNode.EmptyCellCount >= SafeFreeCellsCount || maximizingNode.EmptyCellCount >= depth * 2)
             {
                 return false;
             }
 
-            return playerNode.Children.Values.All(child => GetRiskOfDeath(child, depth - 1));
+            return maximizingNode.Children.Values.All(child => GetRiskOfDeath(child, depth - 1));
         }
 
-        private static bool GetRiskOfDeath(ComputerNode computerNode, int depth)
+        private static bool GetRiskOfDeath(MinimizingNode minimizingNode, int depth)
         {
-            if (computerNode.IsTerminal)
+            if (minimizingNode.GameOver)
             {
                 return true;
             }
 
-            if (depth == 0 || computerNode.EmptyCellCount >= SafeFreeCellsCount || computerNode.EmptyCellCount >= depth * 2)
+            if (depth == 0 || minimizingNode.EmptyCellCount >= SafeFreeCellsCount || minimizingNode.EmptyCellCount >= depth * 2)
             {
                 return false;
             }
 
-            return computerNode.Children.Any(child => GetRiskOfDeath(child, depth - 1));
+            return minimizingNode.Children.Any(child => GetRiskOfDeath(child, depth - 1));
         }
 
-        private static long GetPositionEvaluation(PlayerNode playerNode, int depth)
+        private static int maxCount = 0;
+        
+        private static double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
         {
-            if (playerNode.IsTernminal)
+            if (maximizingNode.GameOver)
             {
                 return DeathEvaluation;
             }
 
-            return playerNode.Children.Values.Max(child => GetPositionEvaluation(child, depth - 1));
-        }
-
-        private static long GetPositionEvaluation(ComputerNode computerNode, int depth)
-        {
-            if (computerNode.IsTerminal)
+            var max = double.NegativeInfinity;
+            foreach (var child in maximizingNode.Children.Values)
             {
-                return DeathEvaluation;
+                max = Math.Max(max, GetPositionEvaluation(child, depth - 1, alpha, beta));
+                alpha = Math.Max(alpha, max);
+
+                if (beta <= alpha)
+                {
+                    Interlocked.Increment(ref maxCount);
+                    break;
+                }
             }
 
+            return max;
+        }
+
+        private static int minCount = 0;
+
+        private static double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double alpha, double beta)
+        {
             if (depth <= 0)
             {
-                return EvaluatePosition(computerNode);
+                return minimizingNode.HeuristicValue;
             }
 
-            var min = long.MaxValue;
-            foreach (var evaluation in computerNode.Children.Select(child => GetPositionEvaluation(child, depth - 1)))
+            var min = double.PositiveInfinity;
+            foreach (var child in minimizingNode.Children)
             {
-                if (evaluation < min)
-                {
-                    min = evaluation;
-                }
+                min = Math.Min(min, GetPositionEvaluation(child, depth, alpha, beta));
 
                 if (min <= DeathEvaluation)
                 {
-                    return min;
+                    break;
+                }
+
+                beta = Math.Min(beta, min);
+                
+                if (beta <= alpha)
+                {
+                    Interlocked.Increment(ref minCount);
+                    break;
                 }
             }
 
             return min;
         }
 
-        private static long EvaluatePosition(ComputerNode node)
-        {
-            var sum = node.State.Sum(cell => cell.Value * cell.Value * (cell.X + cell.Y));
-            var cells = node.EmptyCellCount;
-
-            return sum + cells;
-        }
-
-        private static void LogEvaluation(PlayerNode node, IDictionary<Move, long> evaluationDictionary)
+        private static void LogEvaluation(MaximizingNode node, IDictionary<Move, double> evaluationDictionary)
         {
             Console.WriteLine(node.State.ToString());
 

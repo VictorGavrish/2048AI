@@ -57,8 +57,9 @@
     <Compile Include="AI\OptiminiOptimaxAgent.cs" />
     <Compile Include="AI\TwoTurnsAheadAgent.cs" />
     <Compile Include="AI\Victor\CombinedStrategy.cs" />
-    <Compile Include="AI\Victor\ComputerNode.cs" />
-    <Compile Include="AI\Victor\PlayerNode.cs" />
+    <Compile Include="AI\Victor\MinimizingNode.cs" />
+    <Compile Include="AI\Victor\MaximizingNode.cs" />
+    <Compile Include="AI\Victor\Node.cs" />
     <Compile Include="AI\Victor\VictorAgent.cs" />
     <Compile Include="Game\GridCell.cs" />
     <Compile Include="Game\Move.cs" />

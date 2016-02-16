@@ -36,8 +36,6 @@
 
         public long MaxNodeValue(Grid state, int currDepth)
         {
-            var a = 3;
-
             if (currDepth >= MaxDepth)
             {
                 return this.heuristic(state);

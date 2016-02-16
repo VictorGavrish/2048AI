@@ -1,31 +1,53 @@
 namespace AI2048.AI.Victor
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     using AI2048.Game;
 
     public class VictorAgent : Agent
     {
-        private PlayerNode rootPlayerNode;
+        private MaximizingNode rootMaximizingNode;
 
         public List<Grid> History { get; } = new List<Grid>();
+
+        private static int evaluations = 0;
+
+        private static double EvaluatePosition(Node node)
+        {
+            Interlocked.Increment(ref evaluations);
+
+            //var result = node.Monotonicity * 1000 + node.MaxValueEvaluation * 1000 + node.EmptyCellEvalution * 2700 + node.Smoothness * 100;
+
+            var result = node.State.Sum(cell => cell.Value * cell.Value * (cell.X + cell.Y)) + node.EmptyCellCount;
+
+            return result;
+        }
 
         public override Move MakeDecision(Grid state)
         {
             this.History.Add(state);
 
-            this.rootPlayerNode = this.rootPlayerNode?.Children.SelectMany(kvp => kvp.Value.Children).FirstOrDefault(n => n.State == state) 
-                ?? new PlayerNode(state);
-            this.rootPlayerNode.MakeRoot();
+            var heuristic = new Func<Node, double>(EvaluatePosition);
 
-            if (this.rootPlayerNode.GameOver)
+            this.rootMaximizingNode = //this.rootMaximizingNode?.Children.SelectMany(kvp => kvp.Value.Children).FirstOrDefault(n => n.State == state) ??
+                new MaximizingNode(state, heuristic);
+            this.rootMaximizingNode.MakeRoot();
+
+            if (this.rootMaximizingNode.GameOver)
             {
                 throw new GameOverException();
             }
+            
+            var strategy = new CombinedStrategy(this.rootMaximizingNode);
+            var decision = strategy.MakeDecision();
 
-            var strategy = new CombinedStrategy(this.rootPlayerNode);
-            return strategy.MakeDecision();
+            Console.WriteLine($"Evaluations: {evaluations}");
+            evaluations = 0;
+
+            return decision;
         }
     }
 }
