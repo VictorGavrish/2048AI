@@ -3,7 +3,6 @@
     using System;
     using System.Drawing.Imaging;
 
-    using AI2048;
     using AI2048.AI;
     using AI2048.AI.Agent;
 

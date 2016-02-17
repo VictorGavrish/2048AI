@@ -1,4 +1,4 @@
-namespace AI2048.AI.Searchers
+namespace AI2048.AI.Searchers.Models
 {
     using System.Globalization;
     using System.Text;
@@ -7,6 +7,8 @@ namespace AI2048.AI.Searchers
 
     public class SearchStatistics
     {
+        public bool SearchExhaustive { get; set; }
+
         public Duration SearchDuration { get; set; }
 
         public int SearchDepth { get; set; }
@@ -45,7 +47,7 @@ namespace AI2048.AI.Searchers
             sb.AppendLine($"Search depth:                    {this.SearchDepth}");
             sb.AppendLine($"Estimated total nodes:           {this.EstimatedTotalNodes}");
             sb.AppendLine($"Nodes traversed:                 {this.NodesTraversed} ({this.NodesTraversed / (double)this.EstimatedTotalNodes:P})");
-            sb.AppendLine($"Terminal nodes found:            {this.TerminalNodeCount}");
+            sb.AppendLine($"Terminal nodes found:            {this.TerminalNodeCount} ({this.TerminalNodeCount / (double)this.EstimatedTotalNodes:P})");
             sb.AppendLine($"Root node grandchildren:         {this.RootNodeGrandchildren}");
 
             return sb.ToString();

@@ -1,4 +1,4 @@
-﻿namespace AI2048
+﻿namespace Runner
 {
     using System;
     using System.Linq;
@@ -77,15 +77,6 @@
                     }
 
                     return new LogarithmicGrid(grid);
-                });
-
-        public int NewEl => this.RetryOnSeleniumException(
-            () =>
-                {
-                    var newTile =
-                        this.driver.FindElementsByClassName("tile")
-                            .First(t => t.GetAttribute("class").Contains("tile-new"));
-                    return int.Parse(newTile.Text);
                 });
 
         public string Score

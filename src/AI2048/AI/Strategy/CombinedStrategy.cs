@@ -1,79 +1,72 @@
 namespace AI2048.AI.Strategy
 {
     using System;
-    using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
 
     using AI2048.AI.Searchers;
+    using AI2048.AI.Searchers.Models;
     using AI2048.Game;
 
     using NodaTime;
 
     public class CombinedStrategy
     {
-        private readonly IEnumerable<ISearcher> searchers;
+        private readonly ISearcher moveFilteringSearcher;
 
-        public CombinedStrategy(IEnumerable<ISearcher> searchers)
+        private readonly IConfigurableMovesSearcher searcher;
+
+        public CombinedStrategy(ISearcher moveFilteringSearcher, IConfigurableMovesSearcher searcher)
         {
-            this.searchers = searchers;
+            this.moveFilteringSearcher = moveFilteringSearcher;
+            this.searcher = searcher;
         }
 
         public Move MakeDecision()
         {
             var startTime = SystemClock.Instance.Now;
 
-            Console.WriteLine("Start move calculation");
+            Console.WriteLine("Start next move calculation...");
 
-            var searchResults = this.GetSearchResults();
+            var searchResults = this.GetSearchResult();
 
-            var evaluationDictionary = CombineSearchResults(searchResults);
+            var elapsed = SystemClock.Instance.Now - startTime;
 
-            var endTime = SystemClock.Instance.Now;
-
-            Console.Clear();
-
-            Console.WriteLine("End move calcualtion, time taken: {0}", endTime - startTime);
-
+            Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("M:ss.fff", CultureInfo.InvariantCulture));
             Console.WriteLine();
-            
-            foreach (var searchResult in searchResults)
-            {
-                Console.WriteLine(searchResult);
-            }
 
-            var decision = evaluationDictionary.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First();
+            var decision =
+                searchResults.MoveEvaluations.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First();
 
             return decision;
         }
 
-        private IList<SearchResult> GetSearchResults()
+        private SearchResult GetSearchResult()
         {
-            var tasks = this.searchers.Select(searcher => Task.Factory.StartNew(searcher.Search));
+            var filteringSearchResults = this.moveFilteringSearcher.Search();
 
-            return tasks.Select(task => task.Result).ToList();
-        }
+            var safeMoves = filteringSearchResults.MoveEvaluations
+                .Where(kvp => kvp.Value > ExhaustiveDeathAvoider.DeathEvaluation)
+                .Select(kvp => kvp.Key)
+                .ToArray();
 
-        private static IDictionary<Move, double> CombineSearchResults(IEnumerable<SearchResult> searchResults)
-        {
-            var result = new Dictionary<Move, double>
+            if (safeMoves.Any())
             {
-                { Move.Up, double.NegativeInfinity }, 
-                { Move.Down, double.NegativeInfinity }, 
-                { Move.Left, double.NegativeInfinity }, 
-                { Move.Right, double.NegativeInfinity }
-            };
-
-            foreach (var searchResult in searchResults)
-            {
-                foreach (var key in searchResult.Evaluations.Keys)
-                {
-                    result[key] = double.IsNegativeInfinity(result[key]) ? searchResult.Evaluations[key] : result[key] + searchResult.Evaluations[key];
-                }
+                this.searcher.SetAvailableMoves(safeMoves);
             }
 
-            return result;
+            if (safeMoves.Length == 1)
+            {
+                return filteringSearchResults;
+            }
+
+            var searchResult = this.searcher.Search();
+
+            Console.Clear();
+            Console.WriteLine(filteringSearchResults);
+            Console.WriteLine(searchResult);
+
+            return searchResult;
         }
     }
 }

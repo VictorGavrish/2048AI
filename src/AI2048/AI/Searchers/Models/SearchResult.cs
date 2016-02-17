@@ -1,4 +1,4 @@
-namespace AI2048.AI.Searchers
+namespace AI2048.AI.Searchers.Models
 {
     using System.Collections.Generic;
     using System.Globalization;
@@ -8,7 +8,7 @@ namespace AI2048.AI.Searchers
 
     public class SearchResult
     {
-        public IDictionary<Move, double> Evaluations { get; set; }
+        public IDictionary<Move, double> MoveEvaluations { get; set; }
 
         public string SearcherName { get; set; }
 
@@ -19,7 +19,7 @@ namespace AI2048.AI.Searchers
             var sb = new StringBuilder();
 
             sb.AppendLine($"Search result for searcher {this.SearcherName}:");
-            sb.Append(EvaluationToString(this.Evaluations));
+            sb.Append(EvaluationToString(this.MoveEvaluations));
             sb.Append(this.SearchStatistics);
 
             return sb.ToString();

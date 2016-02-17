@@ -2,13 +2,14 @@ namespace AI2048.AI.Searchers
 {
     using System.Linq;
 
+    using AI2048.AI.Searchers.Models;
     using AI2048.AI.SearchTree;
 
     using NodaTime;
 
     public class ExhaustiveDeathAvoider : ISearcher
     {
-        private const double DeathEvaluation = -1000000000;
+        public const double DeathEvaluation = -1000000000;
 
         private readonly MaximizingNode rootNode;
 
@@ -27,7 +28,8 @@ namespace AI2048.AI.Searchers
             this.searchStatistics = new SearchStatistics
             {
                 SearchDepth = searchDepth,
-                RootNodeGrandchildren = rootNode.Children.Values.Sum(c => c.Children.Count())
+                RootNodeGrandchildren = rootNode.Children.Values.Sum(c => c.Children.Count()),
+                SearchExhaustive = true
             };
         }
 
@@ -46,7 +48,7 @@ namespace AI2048.AI.Searchers
             return new SearchResult
             {
                 SearcherName = nameof(ExhaustiveDeathAvoider),
-                Evaluations = evaluationResult,
+                MoveEvaluations = evaluationResult,
                 SearchStatistics = this.searchStatistics
             };
         }

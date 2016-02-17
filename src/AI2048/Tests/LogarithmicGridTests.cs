@@ -2,12 +2,11 @@
 {
     using AI2048.Game;
 
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class LogarithmicGridTests
     {
-        [Test]
+        [Fact]
         public static void TestMoves()
         {
             // Arrange
@@ -58,10 +57,10 @@
             var down = grid.MakeMove(Move.Down);
 
             // Assert
-            Assert.That(left.Equals(expectedLeft));
-            Assert.That(right.Equals(expectedRight));
-            Assert.That(up.Equals(expectedUp));
-            Assert.That(down.Equals(expectedDown));
+            Assert.StrictEqual(left, expectedLeft);
+            Assert.StrictEqual(right, expectedRight);
+            Assert.StrictEqual(up, expectedUp);
+            Assert.StrictEqual(down, expectedDown);
         }
     }
 }

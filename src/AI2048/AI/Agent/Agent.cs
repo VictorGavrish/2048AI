@@ -5,9 +5,12 @@ namespace AI2048.AI.Agent
 
     using AI2048.AI.Heristics;
     using AI2048.AI.Searchers;
+    using AI2048.AI.Searchers.ResultAnalyzers;
     using AI2048.AI.SearchTree;
     using AI2048.AI.Strategy;
     using AI2048.Game;
+
+    using NodaTime;
 
     public class Agent
     {
@@ -19,7 +22,7 @@ namespace AI2048.AI.Agent
             
             this.History.Add(grid);
 
-            var heuristic = new VictorHeuristic();
+            var heuristic = new AllRotations(new VictorHeuristic());
 
             var rootNode = new MaximizingNode(grid, heuristic);
             if (rootNode.GameOver)
@@ -27,13 +30,13 @@ namespace AI2048.AI.Agent
                 throw new GameOverException();
             }
 
-            var searchers = new ISearcher[]
-            {
-                new AlphaBetaMiniMaxer(new MaximizingNode(grid, heuristic)),
-                new ExhaustiveDeathAvoider(new MaximizingNode(grid, heuristic))
-            };
+            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(400));
+            var exhaustiveDeathAvoider = new ExhaustiveDeathAvoider(rootNode);
+            var alphaBetaMiniMaxer = new AlphaBetaMiniMaxer(rootNode);
+            var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<AlphaBetaMiniMaxer>(alphaBetaMiniMaxer, searchAnalyzer);
 
-            var strategy = new CombinedStrategy(searchers);
+            var strategy = new CombinedStrategy(exhaustiveDeathAvoider, dynamicDepthSearcher);
+
             var decision = strategy.MakeDecision();
 
             return decision;

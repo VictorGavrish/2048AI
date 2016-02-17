@@ -4,65 +4,85 @@ namespace AI2048.AI.Searchers
     using System.Collections.Generic;
     using System.Linq;
 
+    using AI2048.AI.Searchers.Models;
     using AI2048.AI.SearchTree;
+    using AI2048.Game;
 
     using NodaTime;
 
-    public class AlphaBetaMiniMaxer : ISearcher
+    public class AlphaBetaMiniMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
     {
-        private const double DeathEvaluation = -1000000000;
+        private const double MinEvaluation = -1000000000;
 
-        private const int MinNodeTraversed = 15000;
-
-        private static readonly Duration MinTimeSpent = Duration.FromMilliseconds(200);
-
+        private const double MaxEvaluation = 1000000000;
+        
         private readonly MaximizingNode rootNode;
 
-        private readonly AlphaBetaSearchStatistics searchStatistics;
+        private AlphaBetaSearchStatistics searchStatistics;
 
-        private readonly int searchDepth;
+        private IEnumerable<Move> allowedMoves;
 
-        private readonly int grandChildrenPerChild;
+        private int searchDepth;
 
         public AlphaBetaMiniMaxer(MaximizingNode rootNode, int minSearchDepth = 5)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
-            this.grandChildrenPerChild = (int)rootNode.Children.Values.Average(c => c.Children.Count());
-
-            this.searchStatistics = new AlphaBetaSearchStatistics
-            {
-                SearchDepth = minSearchDepth,
-                RootNodeGrandchildren = rootNode.Children.Values.Sum(c => c.Children.Count())
-            };
         }
 
         public SearchResult Search()
         {
+            this.searchStatistics = new AlphaBetaSearchStatistics
+            {
+                RootNodeGrandchildren = this.rootNode.Children.Values.Sum(c => c.Children.Count())
+            };
+
             var startTime = SystemClock.Instance.Now;
 
-            var evaluationResult = this.rootNode.Children.ToDictionary(
-                kvp => kvp.Key, 
-                kvp =>
-                this.GetPositionEvaluation(kvp.Value, this.searchDepth, double.NegativeInfinity, double.PositiveInfinity));
+            var evaluationResult = this.InitializeEvaluation();
 
-            if ((this.searchStatistics.NodesTraversed < MinNodeTraversed || SystemClock.Instance.Now - startTime < MinTimeSpent)
-                && !evaluationResult.All(kvp => kvp.Value <= DeathEvaluation))
-            {
-                var betterSearcher = new AlphaBetaMiniMaxer(this.rootNode, this.searchDepth + 1);
-                var results = betterSearcher.Search();
-                results.SearchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
-                return results;
-            }
-
+            this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation);
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
+            this.searchStatistics.SearchDepth = this.searchDepth;
 
             return new SearchResult
             {
-                SearcherName = nameof(AlphaBetaMiniMaxer), 
-                Evaluations = evaluationResult, 
-                SearchStatistics = this.searchStatistics,
+                SearcherName = nameof(AlphaBetaMiniMaxer),
+                MoveEvaluations = evaluationResult, 
+                SearchStatistics = this.searchStatistics
             };
+        }
+
+        public void SetDepth(int depth)
+        {
+            this.searchDepth = depth;
+        }
+
+        public void SetAvailableMoves(IEnumerable<Move> moves)
+        {
+            this.allowedMoves = moves;
+        }
+
+        private IDictionary<Move, double> InitializeEvaluation()
+        {
+            var result = new Dictionary<Move, double>();
+
+            var alpha = MinEvaluation;
+
+            var max = double.NegativeInfinity;
+            foreach (var child in this.rootNode.Children
+                .Where(child => this.allowedMoves?.Contains(child.Key) ?? true)
+                .OrderByDescending(child => child.Value.HeuristicValue))
+            {
+                this.searchStatistics.NodesTraversed++;
+
+                max = Math.Max(max, this.GetPositionEvaluation(child.Value, this.searchDepth, alpha, MaxEvaluation));
+                alpha = Math.Max(alpha, max);
+
+                result.Add(child.Key, max);
+            }
+
+            return result;
         }
 
         private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
@@ -72,7 +92,7 @@ namespace AI2048.AI.Searchers
             if (maximizingNode.GameOver)
             {
                 this.searchStatistics.TerminalNodeCount++;
-                return DeathEvaluation;
+                return MinEvaluation + 100 - depth;
             }
 
             if (depth == 0)
@@ -96,7 +116,6 @@ namespace AI2048.AI.Searchers
                 if (beta <= alpha)
                 {
                     this.searchStatistics.MaximizingNodeBranchesPruned++;
-                    this.searchStatistics.EstimatedNodesPruned += this.GetEstimatedNodesPruned(depth, true);
                     break;
                 }
             }
@@ -125,39 +144,16 @@ namespace AI2048.AI.Searchers
             {
                 min = Math.Min(min, this.GetPositionEvaluation(child, depth - 1, alpha, beta));
 
-                if (min <= DeathEvaluation)
-                {
-                    break;
-                }
-
                 beta = Math.Min(beta, min);
 
                 if (beta <= alpha)
                 {
                     this.searchStatistics.MinimizingNodeBranchesPruned++;
-                    this.searchStatistics.EstimatedNodesPruned += this.GetEstimatedNodesPruned(depth, false);
                     break;
                 }
             }
 
             return min;
-        }
-
-        private int GetEstimatedNodesPruned(int depth, bool maximizing)
-        {
-            var result = maximizing ? 2 : this.grandChildrenPerChild / 2;
-
-            for (var i = depth - 2; i >= 0; i -= 2)
-            {
-                result *= maximizing ? this.grandChildrenPerChild : 3;
-            }
-
-            for (var i = depth - 1; i >= 0; i -= 2)
-            {
-                result *= maximizing ? 3 : this.grandChildrenPerChild;
-            }
-
-            return result;
         }
     }
 }

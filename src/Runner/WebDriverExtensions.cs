@@ -1,4 +1,4 @@
-﻿namespace AI2048
+﻿namespace Runner
 {
     using System;
 
