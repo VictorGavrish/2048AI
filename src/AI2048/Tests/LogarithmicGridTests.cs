@@ -5,12 +5,13 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class LogGridTests
+    public class LogarithmicGridTests
     {
         [Test]
-        public static void Test()
+        public static void TestMoves()
         {
-            var grid = new LogGrid(new byte[,]
+            // Arrange
+            var grid = new LogarithmicGrid(new byte[,]
             {
                 { 1, 1, 2, 2 },
                 { 0, 1, 1, 0 },
@@ -18,7 +19,7 @@
                 { 1, 0, 0, 1 }
             });
 
-            var expectedLeft = new LogGrid(new byte[,]
+            var expectedLeft = new LogarithmicGrid(new byte[,]
             {
                 { 2, 3, 0, 0 },
                 { 2, 0, 0, 0 },
@@ -26,7 +27,7 @@
                 { 2, 0, 0, 0 }
             });
 
-            var expectedRight = new LogGrid(new byte[,]
+            var expectedRight = new LogarithmicGrid(new byte[,]
             {
                 { 0, 0, 2, 3 },
                 { 0, 0, 0, 2 },
@@ -34,7 +35,7 @@
                 { 0, 0, 0, 2 }
             });
 
-            var expectedUp = new LogGrid(new byte[,]
+            var expectedUp = new LogarithmicGrid(new byte[,]
             {
                 { 2, 2, 2, 2 },
                 { 0, 1, 2, 2 },
@@ -42,7 +43,7 @@
                 { 0, 0, 0, 0 }
             });
 
-            var expectedDown = new LogGrid(new byte[,]
+            var expectedDown = new LogarithmicGrid(new byte[,]
             {
                 { 0, 0, 0, 0 },
                 { 0, 0, 0, 0 },
@@ -50,14 +51,13 @@
                 { 2, 2, 2, 2 }
             });
 
+            // Act
             var left = grid.MakeMove(Move.Left);
-
             var right = grid.MakeMove(Move.Right);
-
             var up = grid.MakeMove(Move.Up);
-
             var down = grid.MakeMove(Move.Down);
 
+            // Assert
             Assert.That(left.Equals(expectedLeft));
             Assert.That(right.Equals(expectedRight));
             Assert.That(up.Equals(expectedUp));

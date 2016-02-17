@@ -1,8 +1,8 @@
 namespace AI2048.Game
 {
-    public class GridCell
+    public struct LogarithmicGridCell
     {
-        public GridCell(int value, int x, int y)
+        public LogarithmicGridCell(byte value, int x, int y)
         {
             this.X = x;
             this.Y = y;
@@ -13,6 +13,6 @@ namespace AI2048.Game
 
         public int Y { get; }
 
-        public int Value { get; }
+        public byte Value { get; }
     }
 }

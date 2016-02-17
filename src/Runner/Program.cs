@@ -2,11 +2,10 @@
 {
     using System;
     using System.Drawing.Imaging;
-    using System.Runtime.InteropServices;
 
     using AI2048;
     using AI2048.AI;
-    using AI2048.AI.Victor;
+    using AI2048.AI.Agent;
 
     internal class Program
     {
@@ -14,7 +13,7 @@
         {
             using (var game = new GamePage())
             {
-                var agent = new VictorAgent();
+                var agent = new Agent();
                 try
                 {
                     while (true)

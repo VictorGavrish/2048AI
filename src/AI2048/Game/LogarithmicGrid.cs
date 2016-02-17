@@ -7,56 +7,46 @@
     using System.Runtime.InteropServices;
     using System.Text;
 
-    public class LogGridCell
-    {
-        public LogGridCell(byte value, int x, int y)
-        {
-            this.X = x;
-            this.Y = y;
-            this.Value = value;
-        }
-
-        public int X { get; }
-
-        public int Y { get; }
-
-        public byte Value { get; }
-    }
-
-    public class LogGrid : IEnumerable<LogGridCell>
+    public class LogarithmicGrid : IEnumerable<LogarithmicGridCell>
     {
         private readonly byte[,] grid;
 
-        public LogGrid(byte[,] grid)
+        public LogarithmicGrid(byte[,] grid)
         {
             this.grid = grid;
         }
 
-        public LogGrid(int[,] grid)
+        public LogarithmicGrid(int[,] grid)
         {
             this.grid = ToByteInLogSpace(grid);
         }
 
-        private static byte[,] ToByteInLogSpace(int[,] cloneMatrix)
+        public byte this[int x, int y] => this.grid[x, y];
+
+        public override bool Equals(object obj) => InnerEqual(this.grid, (obj as LogarithmicGrid)?.grid);
+
+        public bool Equals(LogarithmicGrid other) => InnerEqual(this.grid, other.grid);
+
+        public IEnumerable<byte> Flatten() => this.grid.Cast<byte>();
+
+        public IEnumerator<LogarithmicGridCell> GetEnumerator()
         {
-            var result = new byte[4,4];
-
-            for (int y = 0; y < 4; y++)
+            for (var y = 0; y < 4; y++)
             {
-                for (int x = 0; x < 4; x++)
+                for (var x = 0; x < 4; x++)
                 {
-                    var current = cloneMatrix[x, y];
-
-                    result[x, y] = current == 0
-                        ? (byte)0
-                        : (byte)Math.Log(current, 2);
+                    yield return new LogarithmicGridCell(this.grid[x, y], x, y);
                 }
             }
-
-            return result;
         }
 
-        public LogGrid MakeMove(Move move)
+        public override int GetHashCode() => unchecked(
+            this.grid[0, 0] + this.grid[0, 1] * 2 + this.grid[0, 2] * 3 + this.grid[0, 3] * 5
+            + this.grid[1, 0] * 7 + this.grid[1, 1] * 11 + this.grid[1, 2] * 13 + this.grid[1, 3] * 17
+            + this.grid[2, 0] * 19 + this.grid[2, 1] * 23 + this.grid[2, 2] * 29 + this.grid[2, 3] * 31
+            + this.grid[3, 0] * 37 + this.grid[3, 1] * 41 + this.grid[3, 2] * 43 + this.grid[3, 3] * 47);
+
+        public LogarithmicGrid MakeMove(Move move)
         {
             switch (move)
             {
@@ -73,7 +63,7 @@
             }
         }
 
-        public IEnumerable<LogGrid> NextPossibleWorldStates()
+        public IEnumerable<LogarithmicGrid> NextPossibleWorldStates()
         {
             for (var x = 0; x < 4; x++)
             {
@@ -86,22 +76,81 @@
 
                     var newStateWith2 = this.CloneMatrix();
                     newStateWith2[x, y] = 1;
-                    yield return new LogGrid(newStateWith2);
+                    yield return new LogarithmicGrid(newStateWith2);
 
                     var newStateWith4 = this.CloneMatrix();
                     newStateWith4[x, y] = 2;
-                    yield return new LogGrid(newStateWith4);
+                    yield return new LogarithmicGrid(newStateWith4);
                 }
             }
         }
 
-        private LogGrid MoveLeft() => new LogGrid(this.MoveHorizontally(false));
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            for (var x = 0; x < this.grid.GetLength(1); x++)
+            {
+                for (var y = 0; y < this.grid.GetLength(0); y++)
+                {
+                    var current = this.grid[x, y];
 
-        private LogGrid MoveRight() => new LogGrid(this.MoveHorizontally(true));
+                    var currentHumnan = current == 0 ? 0 : Math.Pow(2, current);
 
-        private LogGrid MoveUp() => new LogGrid(this.MoveVertically(false));
+                    sb.Append($"{currentHumnan, 5}");
+                }
 
-        private LogGrid MoveDown() => new LogGrid(this.MoveVertically(true));
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int memcmp(byte[,] first, byte[,] second, int count);
+
+        private static bool InnerEqual(byte[,] first, byte[,] second)
+        {
+            if (first == null || second == null)
+            {
+                return false;
+            }
+
+            if (first.Length != second.Length)
+            {
+                return false;
+            }
+
+            return memcmp(first, second, first.Length) == 0;
+        }
+
+        private static byte[,] ToByteInLogSpace(int[,] matrix)
+        {
+            var result = new byte[4, 4];
+
+            for (var y = 0; y < 4; y++)
+            {
+                for (var x = 0; x < 4; x++)
+                {
+                    var current = matrix[x, y];
+
+                    result[x, y] = current == 0 ? (byte)0 : (byte)Math.Log(current, 2);
+                }
+            }
+
+            return result;
+        }
+
+        private byte[,] CloneMatrix() => (byte[,])this.grid.Clone();
+
+        private LogarithmicGrid MoveDown() => new LogarithmicGrid(this.MoveVertically(true));
+
+        private LogarithmicGrid MoveLeft() => new LogarithmicGrid(this.MoveHorizontally(false));
+
+        private LogarithmicGrid MoveRight() => new LogarithmicGrid(this.MoveHorizontally(true));
+
+        private LogarithmicGrid MoveUp() => new LogarithmicGrid(this.MoveVertically(false));
 
         private byte[,] MoveHorizontally(bool left)
         {
@@ -198,78 +247,6 @@
             }
 
             return result;
-        }
-
-        public int EmptyCellCount => this.Flatten().Count(i => i == 0);
-
-        public byte this[int x, int y] => this.grid[x, y];
-
-        private byte[,] CloneMatrix() => (byte[,])this.grid.Clone();
-
-        public IEnumerable<byte> Flatten() => this.grid.Cast<byte>();
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            for (var x = 0; x < this.grid.GetLength(1); x++)
-            {
-                for (var y = 0; y < this.grid.GetLength(0); y++)
-                {
-                    var current = this.grid[x, y];
-
-                    var currentHumnan = current == 0 ? 0 : Math.Pow(2, current);
-
-                    sb.Append($"{currentHumnan, 5}");
-                }
-
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return SequenceEqual(this.grid, (obj as LogGrid)?.grid);
-        }
-
-        public bool Equals(LogGrid other)
-        {
-            return SequenceEqual(this.grid, other.grid);
-        }
-
-        private static bool SequenceEqual(byte[,] first, byte[,] second)
-        {
-            return memcmp(first, second, Marshal.SizeOf(typeof(byte)) * first.Length) == 0;
-        }
-
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int memcmp(byte[,] first, byte[,] second, int count);
-
-        public override int GetHashCode()
-        {
-            return
-                unchecked(
-                    this.grid[0, 0] + this.grid[0, 1] * 2 + this.grid[0, 2] * 3 + this.grid[0, 3] * 5
-                    + this.grid[1, 0] * 7 + this.grid[1, 1] * 11 + this.grid[1, 2] * 13 + this.grid[1, 3] * 17
-                    + this.grid[2, 0] * 19 + this.grid[2, 1] * 23 + this.grid[2, 2] * 29 + this.grid[2, 3] * 31
-                    + this.grid[3, 0] * 37 + this.grid[3, 1] * 41 + this.grid[3, 2] * 43 + this.grid[3, 3] * 47);
-        }
-
-        public IEnumerator<LogGridCell> GetEnumerator()
-        {
-            for (int y = 0; y < 4; y++)
-            {
-                for (int x = 0; x < 4; x++)
-                {
-                    yield return new LogGridCell(this.grid[x, y], x, y);
-                }
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
         }
     }
 }

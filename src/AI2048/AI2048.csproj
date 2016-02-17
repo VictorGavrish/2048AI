@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NodaTime, Version=1.3.0.0, Culture=neutral, PublicKeyToken=4226afe0d9b296d1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NodaTime.1.3.1\lib\net35-Client\NodaTime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -41,43 +45,34 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebDriver, Version=2.51.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Selenium.WebDriver.2.51.0\lib\net40\WebDriver.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="WebDriver.Support, Version=2.51.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Selenium.Support.2.51.0\lib\net40\WebDriver.Support.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AI\Agent.cs" />
     <Compile Include="AI\GameOverException.cs" />
-    <Compile Include="AI\Heuristic.cs" />
-    <Compile Include="AI\OptiminiOptimaxAgent.cs" />
-    <Compile Include="AI\TwoTurnsAheadAgent.cs" />
-    <Compile Include="AI\Victor\CombinedStrategy.cs" />
-    <Compile Include="AI\Victor\MinimizingNode.cs" />
-    <Compile Include="AI\Victor\MaximizingNode.cs" />
-    <Compile Include="AI\Victor\Node.cs" />
-    <Compile Include="AI\Victor\VictorAgent.cs" />
-    <Compile Include="Game\GridCell.cs" />
-    <Compile Include="Game\LogGrid.cs" />
+    <Compile Include="AI\Searchers\AlphaBetaSearchStatistics.cs" />
+    <Compile Include="AI\Searchers\ExhaustiveDeathAvoider.cs" />
+    <Compile Include="AI\Searchers\AlphaBetaMiniMaxer.cs" />
+    <Compile Include="AI\Searchers\ISearcher.cs" />
+    <Compile Include="AI\Searchers\SearchResult.cs" />
+    <Compile Include="AI\Searchers\SearchStatistics.cs" />
+    <Compile Include="Game\LogarithmicGridExtensions.cs" />
+    <Compile Include="AI\Heristics\StackOverflowHeuristic.cs" />
+    <Compile Include="AI\Strategy\CombinedStrategy.cs" />
+    <Compile Include="AI\Heristics\IHeuristic.cs" />
+    <Compile Include="AI\SearchTree\MinimizingNode.cs" />
+    <Compile Include="AI\SearchTree\MaximizingNode.cs" />
+    <Compile Include="AI\SearchTree\Node.cs" />
+    <Compile Include="AI\Agent\Agent.cs" />
+    <Compile Include="AI\Heristics\VictorHeuristic.cs" />
+    <Compile Include="Game\LogarithmicGrid.cs" />
+    <Compile Include="Game\LogarithmicGridCell.cs" />
     <Compile Include="Game\Move.cs" />
-    <Compile Include="Tests\EmulaturSelfCheckTests.cs" />
-    <Compile Include="Tests\GameLogicTests.cs" />
-    <Compile Include="GamePage.cs" />
-    <Compile Include="Game\GameLogic.cs" />
-    <Compile Include="Game\Grid.cs" />
-    <Compile Include="Run.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\GridOperationsTests.cs" />
-    <Compile Include="Tests\LogGridTests.cs" />
-    <Compile Include="WebDriverExtensions.cs" />
+    <Compile Include="Tests\LogarithmicGridTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
