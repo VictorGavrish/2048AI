@@ -9,7 +9,15 @@
     {
         public double Evaluate(Node node)
         {
-            var result = node.Grid.Sum(cell => Math.Pow(2, cell.Value * 2) * (cell.X + cell.Y)) + node.EmptyCellCount;
+            double result = node.EmptyCellCount;
+
+            for (int y = 0; y < 4; y++)
+            {
+                for (int x = 0; x < 4; x++)
+                {
+                    result += Math.Pow(2, node.Grid[x, y] * 2) * (x + y);
+                }
+            }
 
             return result;
         }

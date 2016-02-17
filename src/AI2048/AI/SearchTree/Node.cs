@@ -10,10 +10,8 @@
     {
         protected Node(IHeuristic heuristic)
         {
-            this.emptyCellCountLazy = new Lazy<int>(this.GetEmptyCellCount);
-
             this.Heuristic = heuristic;
-            this.heuristicLazy = new Lazy<double>(() => this.Heuristic.Evaluate(this));
+            this.heuristicLazy = new Lazy<double>(() => this.Heuristic.Evaluate(this), false);
         }
 
         public LogarithmicGrid Grid { get; protected set; }
@@ -22,9 +20,7 @@
         private readonly Lazy<double> heuristicLazy;
         public double HeuristicValue => this.heuristicLazy.Value;
         
-        public int EmptyCellCount => this.emptyCellCountLazy.Value;
-        private readonly Lazy<int> emptyCellCountLazy;
-        private int GetEmptyCellCount() => this.Grid.Flatten().Count(i => i == 0);
+        public int EmptyCellCount => this.Grid.Flatten().Count(i => i == 0);
 
         public Node RotateCw()
         {

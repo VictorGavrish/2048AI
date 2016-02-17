@@ -7,9 +7,11 @@
     using System.Runtime.InteropServices;
     using System.Text;
 
-    public class LogarithmicGrid : IEnumerable<LogarithmicGridCell>
+    public class LogarithmicGrid
     {
         private readonly byte[,] grid;
+
+        private static readonly Random Random = new Random();
 
         public LogarithmicGrid(byte[,] grid)
         {
@@ -23,28 +25,43 @@
 
         public byte this[int x, int y] => this.grid[x, y];
 
-        public override bool Equals(object obj) => InnerEqual(this.grid, (obj as LogarithmicGrid)?.grid);
-
-        public bool Equals(LogarithmicGrid other) => InnerEqual(this.grid, other.grid);
-
-        public IEnumerable<byte> Flatten() => this.grid.Cast<byte>();
-
-        public IEnumerator<LogarithmicGridCell> GetEnumerator()
+        public byte[] Flatten()
         {
-            for (var y = 0; y < 4; y++)
-            {
-                for (var x = 0; x < 4; x++)
-                {
-                    yield return new LogarithmicGridCell(this.grid[x, y], x, y);
-                }
-            }
+            var result = new byte[16];
+            Buffer.BlockCopy(this.grid, 0, result, 0, 16);
+            return result;
         }
 
-        public override int GetHashCode() => unchecked(
-            this.grid[0, 0] + this.grid[0, 1] * 2 + this.grid[0, 2] * 3 + this.grid[0, 3] * 5
-            + this.grid[1, 0] * 7 + this.grid[1, 1] * 11 + this.grid[1, 2] * 13 + this.grid[1, 3] * 17
-            + this.grid[2, 0] * 19 + this.grid[2, 1] * 23 + this.grid[2, 2] * 29 + this.grid[2, 3] * 31
-            + this.grid[3, 0] * 37 + this.grid[3, 1] * 41 + this.grid[3, 2] * 43 + this.grid[3, 3] * 47);
+        public LogarithmicGrid AddRandomTile()
+        {
+            var flat = this.Flatten();
+
+            var emptyCells = flat.Count(c => c == 0);
+            
+            var value = Random.NextDouble() < 0.9 ? (byte)1 : (byte)2;
+            var position = Random.Next(emptyCells);
+
+            for (var i = 0; i < 16; i++)
+            {
+                if (flat[i] != 0)
+                {
+                    continue;
+                }
+
+                if (position == 0)
+                {
+                    flat[i] = value;
+                    break;
+                }
+
+                position--;
+            }
+
+            var newGrid = new byte[4, 4];
+            Buffer.BlockCopy(flat, 0, newGrid, 0, 16);
+
+            return new LogarithmicGrid(newGrid);
+        }
 
         public LogarithmicGrid MakeMove(Move move)
         {
@@ -85,6 +102,18 @@
             }
         }
 
+        public override bool Equals(object obj) =>
+    //obj is LogarithmicGrid && 
+    InnerEqual(this.grid, ((LogarithmicGrid)obj).grid);
+
+        public bool Equals(LogarithmicGrid other) => InnerEqual(this.grid, other.grid);
+
+        public override int GetHashCode() => unchecked(
+            this.grid[0, 0] + this.grid[0, 1] * 2 + this.grid[0, 2] * 3 + this.grid[0, 3] * 5
+            + this.grid[1, 0] * 7 + this.grid[1, 1] * 11 + this.grid[1, 2] * 13 + this.grid[1, 3] * 17
+            + this.grid[2, 0] * 19 + this.grid[2, 1] * 23 + this.grid[2, 2] * 29 + this.grid[2, 3] * 31
+            + this.grid[3, 0] * 37 + this.grid[3, 1] * 41 + this.grid[3, 2] * 43 + this.grid[3, 3] * 47);
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -105,24 +134,19 @@
             return sb.ToString();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int memcmp(byte[,] first, byte[,] second, int count);
 
         private static bool InnerEqual(byte[,] first, byte[,] second)
         {
-            if (first == null || second == null)
-            {
-                return false;
-            }
+            return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
+                   && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
+                   && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
+                   && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
+                   && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
+                   && first[3, 3] == second[3, 3];
 
-            if (first.Length != second.Length)
-            {
-                return false;
-            }
-
-            return memcmp(first, second, first.Length) == 0;
+            //return memcmp(first, second, first.Length) == 0;
         }
 
         private static byte[,] ToByteInLogSpace(int[,] matrix)
@@ -142,7 +166,14 @@
             return result;
         }
 
-        private byte[,] CloneMatrix() => (byte[,])this.grid.Clone();
+        private byte[,] CloneMatrix()
+        {
+            var result = new byte[4, 4];
+
+            Buffer.BlockCopy(this.grid, 0, result, 0, 16);
+
+            return result;
+        }
 
         private LogarithmicGrid MoveDown() => new LogarithmicGrid(this.MoveVertically(true));
 

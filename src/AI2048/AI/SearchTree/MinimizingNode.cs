@@ -17,14 +17,14 @@
             this.parentNode = parentNode;
             this.Grid = grid;
 
-            this.childrenLazy = new Lazy<IEnumerable<MaximizingNode>>(this.GetChildren);
+            this.childrenLazy = new Lazy<IEnumerable<MaximizingNode>>(this.GetChildren, false);
         }
 
         public MaximizingNode RootMaximizingNode => this.parentNode.RootMaximizingNode;
         
-        public ConcurrentDictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
+        public Dictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
 
-        public ConcurrentDictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.parentNode.KnownComputerNodes;
+        public Dictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.parentNode.KnownComputerNodes;
 
         public IEnumerable<MaximizingNode> Children => this.childrenLazy.Value;
         private readonly Lazy<IEnumerable<MaximizingNode>> childrenLazy;
@@ -36,7 +36,8 @@
                 MaximizingNode maximizingNode;
                 if (!this.KnownPlayerNodes.TryGetValue(possibleState, out maximizingNode))
                 {
-                    maximizingNode = this.KnownPlayerNodes.GetOrAdd(possibleState, new MaximizingNode(possibleState, this, this.Heuristic));
+                    maximizingNode = new MaximizingNode(possibleState, this, this.Heuristic);
+                    this.KnownPlayerNodes.Add(possibleState, maximizingNode);
                 }
 
                 yield return maximizingNode;

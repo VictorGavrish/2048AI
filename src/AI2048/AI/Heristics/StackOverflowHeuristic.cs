@@ -3,67 +3,70 @@ namespace AI2048.AI.Heristics
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
 
     using AI2048.AI.SearchTree;
     using AI2048.Game;
 
     public class StackOverflowHeuristic : IHeuristic
     {
-        private static readonly double Log2 = Math.Log(2);
-
         public double Evaluate(Node node)
         {
             var result = 
-                GetMonotonicity(node) * 1000 +
-                GetMaxValueEvalution(node) * 1000 +
-                GetEmptyCellEvalution(node) * 2700 +
-                GetSmoothness(node) * 200;
+                GetMonotonicity(node) * 1.0 +
+                GetMaxValueEvalution(node) * 1.0 +
+                GetEmptyCellEvalution(node) * 2.7 +
+                GetSmoothness(node) * 0.1;
 
             return result;
         }
 
         private static double GetEmptyCellEvalution(Node node) => Math.Log(node.EmptyCellCount);
         
-        private static double GetMaxValueEvalution(Node node) => node.Grid.Flatten().Max() / Log2;
+        private static double GetMaxValueEvalution(Node node) => node.Grid.Flatten().Max();
 
         private static double GetSmoothness(Node node)
         {
             double smoothness = 0;
-            foreach (var cell in node.Grid.Where(c => c.Value != 0))
-            {
-                var value = cell.Value / Log2;
 
-                foreach (var neighbor in GetNeighbors(node, cell))
+            for (int y = 0; y < 4; y++)
+            {
+                for (int x = 0; x < 4; x++)
                 {
-                    var neighborValue = neighbor.Value / Log2;
-                    smoothness = smoothness - Math.Abs(value - neighborValue);
+                    var value = node.Grid[x, y];
+
+                    foreach (var neighbor in GetNeighbors(node.Grid, value, x, y))
+                    {
+                        var neighborValue = neighbor;
+                        smoothness = smoothness - Math.Abs(value - neighborValue);
+                    }
                 }
             }
 
             return smoothness;
         }
 
-        private static IEnumerable<LogarithmicGridCell> GetNeighbors(Node node, LogarithmicGridCell cell)
+        private static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, byte value, int cellX, int cellY)
         {
-            for (int x = cell.X + 1; x < 4; x++)
+            for (var x = cellX + 1; x < 4; x++)
             {
-                if (node.Grid[x, cell.Y] == 0)
+                if (grid[x, cellY] == 0)
                 {
                     continue;
                 }
 
-                yield return new LogarithmicGridCell(node.Grid[x, cell.Y], x, cell.Y);
+                yield return grid[x, cellY];
                 break;
             }
 
-            for (int y = cell.Y + 1; y < 4; y++)
+            for (var y = cellY + 1; y < 4; y++)
             {
-                if (node.Grid[cell.X, y] == 0)
+                if (grid[cellX, y] == 0)
                 {
                     continue;
                 }
 
-                yield return new LogarithmicGridCell(node.Grid[cell.X, y], cell.X, y);
+                yield return grid[cellX, y];
                 break;
             }
         }
@@ -88,8 +91,8 @@ namespace AI2048.AI.Heristics
                         next--;
                     }
 
-                    var currentValue = node.Grid[x, current] != 0 ? node.Grid[x, current] / Log2 : 0;
-                    var nextValue = node.Grid[x, next] != 0 ? node.Grid[x, next] / Log2 : 0;
+                    var currentValue = node.Grid[x, current];
+                    var nextValue = node.Grid[x, next];
 
                     if (current > nextValue)
                     {
@@ -124,8 +127,8 @@ namespace AI2048.AI.Heristics
                         next--;
                     }
 
-                    var currentValue = node.Grid[current, y] != 0 ? node.Grid[current, y] / Log2 : 0;
-                    var nextValue = node.Grid[next, y] != 0 ? node.Grid[next, y] / Log2 : 0;
+                    var currentValue = node.Grid[current, y];
+                    var nextValue = node.Grid[next, y];
 
                     if (currentValue > nextValue)
                     {

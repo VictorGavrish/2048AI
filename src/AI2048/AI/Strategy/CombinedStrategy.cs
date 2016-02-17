@@ -10,7 +10,7 @@ namespace AI2048.AI.Strategy
 
     using NodaTime;
 
-    public class CombinedStrategy
+    public class CombinedStrategy : IStrategy
     {
         private readonly ISearcher moveFilteringSearcher;
 

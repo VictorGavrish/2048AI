@@ -32,18 +32,18 @@
         private bool isRootNode;
         public MaximizingNode RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
 
-        private ConcurrentDictionary<LogarithmicGrid, MaximizingNode> knownPlayerNodes;
-        public ConcurrentDictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
+        private Dictionary<LogarithmicGrid, MaximizingNode> knownPlayerNodes;
+        public Dictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
 
-        private ConcurrentDictionary<LogarithmicGrid, MinimizingNode> knownComputerNodes;
-        public ConcurrentDictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
+        private Dictionary<LogarithmicGrid, MinimizingNode> knownComputerNodes;
+        public Dictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
 
         public void MakeRoot()
         {
             this.isRootNode = true;
             this.parentNode = null;
-            this.knownPlayerNodes = new ConcurrentDictionary<LogarithmicGrid, MaximizingNode>();
-            this.knownComputerNodes = new ConcurrentDictionary<LogarithmicGrid, MinimizingNode>();
+            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode>();
+            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode>();
         }
 
         public Dictionary<Move, MinimizingNode> Children => this.childrenByMoveLazy.Value;
@@ -60,7 +60,8 @@
 
                 if (!this.KnownComputerNodes.TryGetValue(newState, out minimizingNode))
                 {
-                    minimizingNode = this.KnownComputerNodes.GetOrAdd(newState, new MinimizingNode(newState, this, this.Heuristic));
+                    minimizingNode = new MinimizingNode(newState, this, this.Heuristic);
+                    this.KnownComputerNodes.Add(newState, minimizingNode);
                 }
 
                 dictionary.Add(move, minimizingNode);
