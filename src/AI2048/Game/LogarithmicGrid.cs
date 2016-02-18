@@ -103,8 +103,8 @@
         }
 
         public override bool Equals(object obj) =>
-    //obj is LogarithmicGrid && 
-    InnerEqual(this.grid, ((LogarithmicGrid)obj).grid);
+            //obj is LogarithmicGrid && 
+            InnerEqual(this.grid, ((LogarithmicGrid)obj).grid);
 
         public bool Equals(LogarithmicGrid other) => InnerEqual(this.grid, other.grid);
 
@@ -139,14 +139,14 @@
 
         private static bool InnerEqual(byte[,] first, byte[,] second)
         {
-            return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
-                   && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
-                   && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
-                   && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
-                   && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
-                   && first[3, 3] == second[3, 3];
+            //return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
+            //       && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
+            //       && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
+            //       && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
+            //       && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
+            //       && first[3, 3] == second[3, 3];
 
-            //return memcmp(first, second, first.Length) == 0;
+            return memcmp(first, second, first.Length) == 0;
         }
 
         private static byte[,] ToByteInLogSpace(int[,] matrix)
