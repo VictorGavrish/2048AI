@@ -3,6 +3,7 @@ namespace AI2048.AI.Heristics
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
 
     using AI2048.AI.SearchTree;
     using AI2048.Game;
@@ -11,35 +12,36 @@ namespace AI2048.AI.Heristics
     {
         public double Evaluate(Node<double> node)
         {
-            var result = 
-                GetMonotonicity(node) * 1.0 + 
-                GetMaxValueEvalution(node) * 1.0 + 
-                GetEmptyCellEvalution(node) * 2.7 + 
-                GetSmoothness(node) * 0.1;
+            var result = GetMonotonicity(node) + GetMaxValueEvalution(node) + GetEmptyCellEvalution(node)
+                         + GetSmoothness(node) * 0.1;
 
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static double GetEmptyCellEvalution(Node<double> node) => Math.Log(node.EmptyCellCount);
 
-        private static double GetMaxValueEvalution(Node<double> node) => node.Grid.Flatten().Max();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte GetMaxValueEvalution(Node<double> node) => node.Grid.Flatten().Max();
 
-        private static double GetSmoothness(Node<double> node)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetSmoothness(Node<double> node)
         {
-            double smoothness = 0;
+            var smoothness = 0;
 
             for (var y = 0; y < 4; y++)
             {
                 for (var x = 0; x < 4; x++)
                 {
                     smoothness = GetNeighbors(node.Grid, x, y)
-                        .Aggregate(smoothness, (current, neighborValue) => current - Math.Abs(node.Grid[x, y] - neighborValue));
+                        .Aggregate(smoothness, (current, neighbor) => current - Math.Abs(node.Grid[x, y] - neighbor));
                 }
             }
 
             return smoothness;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, int cellX, int cellY)
         {
             for (var x = cellX + 1; x < 4; x++)
@@ -65,10 +67,11 @@ namespace AI2048.AI.Heristics
             }
         }
 
-        private static double GetMonotonicity(Node<double> node)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetMonotonicity(Node<double> node)
         {
-            double down = 0;
-            double up = 0;
+            var down = 0;
+            var up = 0;
             for (var x = 0; x < 4; x++)
             {
                 var current = 0;
@@ -88,7 +91,7 @@ namespace AI2048.AI.Heristics
                     var currentValue = node.Grid[x, current];
                     var nextValue = node.Grid[x, next];
 
-                    if (current > nextValue)
+                    if (currentValue > nextValue)
                     {
                         down += nextValue - currentValue;
                     }
@@ -102,8 +105,8 @@ namespace AI2048.AI.Heristics
                 }
             }
 
-            double right = 0;
-            double left = 0;
+            var right = 0;
+            var left = 0;
             for (var y = 0; y < 4; y++)
             {
                 var current = 0;

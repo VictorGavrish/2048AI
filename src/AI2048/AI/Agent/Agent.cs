@@ -22,7 +22,7 @@ namespace AI2048.AI.Agent
             
             this.History.Add(grid);
 
-            var heuristic = new AllRotations<double>(new VictorHeuristic());
+            var heuristic = new VictorHeuristic();
             var rootNode = new MaximizingNode<double>(grid, heuristic);
 
             if (rootNode.GameOver)

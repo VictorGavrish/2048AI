@@ -44,7 +44,7 @@
                 Console.WriteLine("GAME OVER!");
             }
 
-            Console.ReadLine();
+            Console.ReadKey();
         }
     }
 }
