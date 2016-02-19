@@ -1,66 +1,67 @@
 ﻿namespace AI2048.AI.SearchTree
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
 
     using AI2048.AI.Heristics;
     using AI2048.Game;
 
-    public class MaximizingNode : Node
+    public class MaximizingNode<T> : Node<T> where T : IComparable<T>
     {
+        // ReSharper disable once StaticMemberInGenericType
         private static readonly Move[] Moves = { Move.Up, Move.Left, Move.Down, Move.Right };
 
-        public MaximizingNode(LogarithmicGrid grid, MinimizingNode parentNode, IHeuristic heuristic)
+        public MaximizingNode(LogarithmicGrid grid, MinimizingNode<T> parentNode, IHeuristic<T> heuristic)
             : base(heuristic)
         {
             this.Grid = grid;
             this.parentNode = parentNode;
 
-            this.possibleMovesLazy = new Lazy<IEnumerable<Move>>(this.GetPossibleMoves);
-            this.childrenByMoveLazy = new Lazy<Dictionary<Move, MinimizingNode>>(this.GetChildrenByMove);
+            this.possibleMovesLazy = new Lazy<IEnumerable<Move>>(this.GetPossibleMoves, false);
+            this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode<T>>>(this.GetChildrenByMove, false);
+            this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
         }
 
-        public MaximizingNode(LogarithmicGrid grid, IHeuristic heuristic)
+        public MaximizingNode(LogarithmicGrid grid, IHeuristic<T> heuristic)
             : this(grid, null, heuristic)
         {
             this.MakeRoot();
         }
 
-        private MinimizingNode parentNode;
+        private MinimizingNode<T> parentNode;
         private bool isRootNode;
-        public MaximizingNode RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
+        public MaximizingNode<T> RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
 
-        private Dictionary<LogarithmicGrid, MaximizingNode> knownPlayerNodes;
-        public Dictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
+        private IDictionary<LogarithmicGrid, MaximizingNode<T>> knownPlayerNodes;
+        public IDictionary<LogarithmicGrid, MaximizingNode<T>> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
 
-        private Dictionary<LogarithmicGrid, MinimizingNode> knownComputerNodes;
-        public Dictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
+        private IDictionary<LogarithmicGrid, MinimizingNode<T>> knownComputerNodes;
+        public IDictionary<LogarithmicGrid, MinimizingNode<T>> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
 
         public void MakeRoot()
         {
             this.isRootNode = true;
             this.parentNode = null;
-            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode>();
-            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode>();
+            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode<T>>();
+            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
         }
 
-        public Dictionary<Move, MinimizingNode> Children => this.childrenByMoveLazy.Value;
-        private readonly Lazy<Dictionary<Move, MinimizingNode>> childrenByMoveLazy;
-        private Dictionary<Move, MinimizingNode> GetChildrenByMove()
+        public IDictionary<Move, MinimizingNode<T>> Children => this.childrenByMoveLazy.Value;
+        private readonly Lazy<IDictionary<Move, MinimizingNode<T>>> childrenByMoveLazy;
+        private IDictionary<Move, MinimizingNode<T>> GetChildrenByMove()
         {
-            var dictionary = new Dictionary<Move, MinimizingNode>();
+            var dictionary = new Dictionary<Move, MinimizingNode<T>>();
 
             foreach (var move in this.PossibleMoves)
             {
                 var newState = this.Grid.MakeMove(move);
 
-                MinimizingNode minimizingNode;
+                MinimizingNode<T> minimizingNode;
 
                 if (!this.KnownComputerNodes.TryGetValue(newState, out minimizingNode))
                 {
-                    minimizingNode = new MinimizingNode(newState, this, this.Heuristic);
+                    minimizingNode = new MinimizingNode<T>(newState, this, this.Heuristic);
                     this.KnownComputerNodes.Add(newState, minimizingNode);
                 }
 
@@ -74,6 +75,8 @@
         private readonly Lazy<IEnumerable<Move>> possibleMovesLazy;
         private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => !this.Grid.Equals(this.Grid.MakeMove(move)));
 
-        public bool GameOver => !this.PossibleMoves.Any();
+        public bool GameOver => this.gameOverLazy.Value;
+        private readonly Lazy<bool> gameOverLazy;
+        private bool GetGameOver() => !this.PossibleMoves.Any();
     }
 }

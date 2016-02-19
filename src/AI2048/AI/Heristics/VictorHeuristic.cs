@@ -1,25 +1,27 @@
 ﻿namespace AI2048.AI.Heristics
 {
-    using System;
-    using System.Linq;
+    using System.Runtime.CompilerServices;
 
     using AI2048.AI.SearchTree;
 
-    public class VictorHeuristic : IHeuristic
+    public class VictorHeuristic : IHeuristic<double>
     {
-        public double Evaluate(Node node)
+        public double Evaluate(Node<double> node)
         {
-            double result = node.EmptyCellCount;
+            var result = node.EmptyCellCount;
 
-            for (int y = 0; y < 4; y++)
+            for (var x = 0; x < 4; x++)
             {
-                for (int x = 0; x < 4; x++)
+                for (var y = 0; y < 4; y++)
                 {
-                    result += Math.Pow(2, node.Grid[x, y] * 2) * (x + y);
+                    result += TwoToThePower(node.Grid[x, y] * 2) * (x + y);
                 }
             }
 
             return result;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int TwoToThePower(int power) => 1 << power;
     }
 }

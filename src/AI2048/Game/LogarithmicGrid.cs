@@ -1,13 +1,15 @@
 ﻿namespace AI2048.Game
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
 
-    public class LogarithmicGrid
+    using AI2048.AI.SearchTree;
+
+    public class LogarithmicGrid : IEquatable<LogarithmicGrid>
     {
         private readonly byte[,] grid;
 
@@ -102,18 +104,6 @@
             }
         }
 
-        public override bool Equals(object obj) =>
-            //obj is LogarithmicGrid && 
-            InnerEqual(this.grid, ((LogarithmicGrid)obj).grid);
-
-        public bool Equals(LogarithmicGrid other) => InnerEqual(this.grid, other.grid);
-
-        public override int GetHashCode() => unchecked(
-            this.grid[0, 0] + this.grid[0, 1] * 2 + this.grid[0, 2] * 3 + this.grid[0, 3] * 5
-            + this.grid[1, 0] * 7 + this.grid[1, 1] * 11 + this.grid[1, 2] * 13 + this.grid[1, 3] * 17
-            + this.grid[2, 0] * 19 + this.grid[2, 1] * 23 + this.grid[2, 2] * 29 + this.grid[2, 3] * 31
-            + this.grid[3, 0] * 37 + this.grid[3, 1] * 41 + this.grid[3, 2] * 43 + this.grid[3, 3] * 47);
-
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -125,7 +115,7 @@
 
                     var currentHumnan = current == 0 ? 0 : Math.Pow(2, current);
 
-                    sb.Append($"{currentHumnan, 5}");
+                    sb.Append($"{currentHumnan,5}");
                 }
 
                 sb.AppendLine();
@@ -134,19 +124,94 @@
             return sb.ToString();
         }
 
+        public static LogarithmicGrid Parse(string stringGrid)
+        {
+            var grid = new int[4, 4];
+
+            var values =
+                stringGrid.Split(new[] { '\n', '\r', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(v => v.Trim())
+                    .Select(int.Parse)
+                    .ToArray();
+
+            if (values.Length != 16)
+            {
+                throw new ArgumentException(nameof(stringGrid));
+            }
+
+            Buffer.BlockCopy(values, 0, grid, 0, 16 * sizeof(int));
+
+            return new LogarithmicGrid(grid);
+        }
+
+        public override bool Equals(object obj) => UnsafeCompare(this.grid, ((LogarithmicGrid)obj).grid);
+
+        public bool Equals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
+
+        public bool MemcmpEquals(LogarithmicGrid other) => MemcmpCompare(this.grid, other.grid);
+
+        public bool HardcodedEquals(LogarithmicGrid other) => HardcodedCompare(this.grid, other.grid);
+
+        public bool NaiveEquals(LogarithmicGrid other) => NaiveCompare(this.grid, other.grid);
+
+        public bool UnsafeEquals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
+
+        public override unsafe int GetHashCode()
+        {
+            fixed (byte* buffer = this.grid)
+            {
+                long* x = (long*)buffer, y = (long*)(buffer + 8);
+
+                return (*x).GetHashCode() * 31 + (*y).GetHashCode() * 23;
+            }
+        }
+
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int memcmp(byte[,] first, byte[,] second, int count);
 
-        private static bool InnerEqual(byte[,] first, byte[,] second)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool MemcmpCompare(byte[,] first, byte[,] second)
         {
-            //return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
-            //       && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
-            //       && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
-            //       && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
-            //       && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
-            //       && first[3, 3] == second[3, 3];
-
             return memcmp(first, second, first.Length) == 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool HardcodedCompare(byte[,] first, byte[,] second)
+        {
+            return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
+                   && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
+                   && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
+                   && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
+                   && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
+                   && first[3, 3] == second[3, 3];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool NaiveCompare(byte[,] first, byte[,] second)
+        {
+            for (int y = 0; y < 4; y++)
+            {
+                for (int x = 0; x < 4; x++)
+                {
+                    if (first[x, y] != second[x, y])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe bool UnsafeCompare(byte[,] first, byte[,] second)
+        {
+            fixed (byte* p1 = first, p2 = second)
+            {
+                byte* x1 = p1, x2 = p2, y1 = p1 + 8, y2 = p2 + 8;
+
+                return *(long*)x1 == *(long*)x2 && *(long*)y1 == *(long*)y2;
+            }
         }
 
         private static byte[,] ToByteInLogSpace(int[,] matrix)
@@ -169,20 +234,25 @@
         private byte[,] CloneMatrix()
         {
             var result = new byte[4, 4];
-
+            
             Buffer.BlockCopy(this.grid, 0, result, 0, 16);
 
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LogarithmicGrid MoveDown() => new LogarithmicGrid(this.MoveVertically(true));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LogarithmicGrid MoveLeft() => new LogarithmicGrid(this.MoveHorizontally(false));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LogarithmicGrid MoveRight() => new LogarithmicGrid(this.MoveHorizontally(true));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LogarithmicGrid MoveUp() => new LogarithmicGrid(this.MoveVertically(false));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private byte[,] MoveHorizontally(bool left)
         {
             var result = new byte[4, 4];
@@ -231,6 +301,7 @@
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private byte[,] MoveVertically(bool down)
         {
             var result = new byte[4, 4];

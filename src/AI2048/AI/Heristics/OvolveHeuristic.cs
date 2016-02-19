@@ -3,50 +3,44 @@ namespace AI2048.AI.Heristics
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
 
     using AI2048.AI.SearchTree;
     using AI2048.Game;
 
-    public class StackOverflowHeuristic : IHeuristic
+    public class OvolveHeuristic : IHeuristic<double>
     {
-        public double Evaluate(Node node)
+        public double Evaluate(Node<double> node)
         {
             var result = 
-                GetMonotonicity(node) * 1.0 +
-                GetMaxValueEvalution(node) * 1.0 +
-                GetEmptyCellEvalution(node) * 2.7 +
+                GetMonotonicity(node) * 1.0 + 
+                GetMaxValueEvalution(node) * 1.0 + 
+                GetEmptyCellEvalution(node) * 2.7 + 
                 GetSmoothness(node) * 0.1;
 
             return result;
         }
 
-        private static double GetEmptyCellEvalution(Node node) => Math.Log(node.EmptyCellCount);
-        
-        private static double GetMaxValueEvalution(Node node) => node.Grid.Flatten().Max();
+        private static double GetEmptyCellEvalution(Node<double> node) => Math.Log(node.EmptyCellCount);
 
-        private static double GetSmoothness(Node node)
+        private static double GetMaxValueEvalution(Node<double> node) => node.Grid.Flatten().Max();
+
+        private static double GetSmoothness(Node<double> node)
         {
             double smoothness = 0;
 
-            for (int y = 0; y < 4; y++)
+            for (var y = 0; y < 4; y++)
             {
-                for (int x = 0; x < 4; x++)
+                for (var x = 0; x < 4; x++)
                 {
-                    var value = node.Grid[x, y];
-
-                    foreach (var neighbor in GetNeighbors(node.Grid, value, x, y))
-                    {
-                        var neighborValue = neighbor;
-                        smoothness = smoothness - Math.Abs(value - neighborValue);
-                    }
+                    smoothness = GetNeighbors(node.Grid, x, y)
+                        .Aggregate(smoothness, (current, neighborValue) => current - Math.Abs(node.Grid[x, y] - neighborValue));
                 }
             }
 
             return smoothness;
         }
 
-        private static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, byte value, int cellX, int cellY)
+        private static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, int cellX, int cellY)
         {
             for (var x = cellX + 1; x < 4; x++)
             {
@@ -71,7 +65,7 @@ namespace AI2048.AI.Heristics
             }
         }
 
-        private static double GetMonotonicity(Node node)
+        private static double GetMonotonicity(Node<double> node)
         {
             double down = 0;
             double up = 0;

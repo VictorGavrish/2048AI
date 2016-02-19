@@ -1,7 +1,6 @@
 ﻿namespace Runner
 {
     using System;
-    using System.Drawing.Imaging;
 
     using AI2048.AI;
     using AI2048.AI.Agent;
@@ -42,7 +41,6 @@
             }
             catch (GameOverException)
             {
-                Console.WriteLine(logGrid);
                 Console.WriteLine("GAME OVER!");
             }
 

@@ -4,27 +4,31 @@
 
     using AI2048.AI.SearchTree;
 
-    public class AllRotations : IHeuristic
+    public class AllRotations<T> : IHeuristic<T>
+        where T : IComparable<T>
     {
-        private readonly IHeuristic heuristic;
+        private readonly IHeuristic<T> heuristic;
 
-        public AllRotations(IHeuristic heuristic)
+        public AllRotations(IHeuristic<T> heuristic)
         {
             this.heuristic = heuristic;
         }
 
-        public double Evaluate(Node node)
+        public T Evaluate(Node<T> node)
         {
-            var result = double.NegativeInfinity;
+            var result = this.heuristic.Evaluate(node);
 
-            var i = 0;
-            do
+            for (var i = 0; i < 3; i++)
             {
-                result = Math.Max(result, this.heuristic.Evaluate(node));
-
                 node = node.RotateCw();
+
+                var rotationResult = this.heuristic.Evaluate(node);
+
+                if (rotationResult.CompareTo(result) > 0)
+                {
+                    result = rotationResult;
+                }
             }
-            while (i++ < 4);
 
             return result;
         }

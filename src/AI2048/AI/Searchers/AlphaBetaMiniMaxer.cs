@@ -12,11 +12,11 @@ namespace AI2048.AI.Searchers
 
     public class AlphaBetaMiniMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
     {
-        private const double MinEvaluation = -1000000000;
+        private static readonly double MinEvaluation = -1000000000;
 
         private const double MaxEvaluation = 1000000000;
         
-        private readonly MaximizingNode rootNode;
+        private readonly MaximizingNode<double> rootNode;
 
         private AlphaBetaSearchStatistics searchStatistics;
 
@@ -24,7 +24,7 @@ namespace AI2048.AI.Searchers
 
         private int searchDepth;
 
-        public AlphaBetaMiniMaxer(MaximizingNode rootNode, int minSearchDepth = 5)
+        public AlphaBetaMiniMaxer(MaximizingNode<double> rootNode, int minSearchDepth = 6)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
@@ -41,7 +41,7 @@ namespace AI2048.AI.Searchers
 
             var evaluationResult = this.InitializeEvaluation();
 
-            this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation);
+            this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.searchDepth);
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
             this.searchStatistics.SearchDepth = this.searchDepth;
 
@@ -85,14 +85,14 @@ namespace AI2048.AI.Searchers
             return result;
         }
 
-        private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodesTraversed++;
 
             if (maximizingNode.GameOver)
             {
                 this.searchStatistics.TerminalNodeCount++;
-                return MinEvaluation + 100 - depth;
+                return MinEvaluation + this.searchDepth - depth;
             }
 
             if (depth == 0)
@@ -101,7 +101,7 @@ namespace AI2048.AI.Searchers
                 return maximizingNode.HeuristicValue;
             }
 
-            IEnumerable<MinimizingNode> children = maximizingNode.Children.Values;
+            IEnumerable<MinimizingNode<double>> children = maximizingNode.Children.Values;
             if (depth > 1)
             {
                 children = children.OrderByDescending(c => c.HeuristicValue);
@@ -123,7 +123,7 @@ namespace AI2048.AI.Searchers
             return max;
         }
 
-        private double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodesTraversed++;
 

@@ -1,9 +1,12 @@
 ﻿namespace AI2048.AI.Heristics
 {
+    using System;
+
     using AI2048.AI.SearchTree;
 
-    public interface IHeuristic
+    public interface IHeuristic<T> 
+        where T : IComparable<T>
     {
-        double Evaluate(Node node);
+        T Evaluate(Node<T> node);
     }
 }

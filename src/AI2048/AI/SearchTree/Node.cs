@@ -6,23 +6,23 @@
     using AI2048.AI.Heristics;
     using AI2048.Game;
 
-    public class Node
+    public class Node<T> where T : IComparable<T>
     {
-        protected Node(IHeuristic heuristic)
+        protected Node(IHeuristic<T> heuristic)
         {
             this.Heuristic = heuristic;
-            this.heuristicLazy = new Lazy<double>(() => this.Heuristic.Evaluate(this), false);
+            this.heuristicLazy = new Lazy<T>(() => this.Heuristic.Evaluate(this), false);
         }
 
         public LogarithmicGrid Grid { get; protected set; }
 
-        public readonly IHeuristic Heuristic;
-        private readonly Lazy<double> heuristicLazy;
-        public double HeuristicValue => this.heuristicLazy.Value;
+        public readonly IHeuristic<T> Heuristic;
+        private readonly Lazy<T> heuristicLazy;
+        public T HeuristicValue => this.heuristicLazy.Value;
         
         public int EmptyCellCount => this.Grid.Flatten().Count(i => i == 0);
 
-        public Node RotateCw()
+        public Node<T> RotateCw()
         {
             var newGrid = new byte[4, 4];
             for (var x = 0; x < 4; x++)
@@ -33,7 +33,7 @@
                 }
             }
 
-            var result = new Node(this.Heuristic) { Grid = new LogarithmicGrid(newGrid) };
+            var result = new Node<T>(this.Heuristic) { Grid = new LogarithmicGrid(newGrid) };
 
             return result;
         }

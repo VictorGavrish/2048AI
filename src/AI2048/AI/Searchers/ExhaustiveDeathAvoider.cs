@@ -1,5 +1,6 @@
 namespace AI2048.AI.Searchers
 {
+    using System;
     using System.Linq;
 
     using AI2048.AI.Searchers.Models;
@@ -7,11 +8,11 @@ namespace AI2048.AI.Searchers
 
     using NodaTime;
 
-    public class ExhaustiveDeathAvoider : ISearcher
+    public class ExhaustiveDeathAvoider<T> : ISearcher where T : IComparable<T>
     {
         public const double DeathEvaluation = -1000000000;
 
-        private readonly MaximizingNode rootNode;
+        private readonly MaximizingNode<T> rootNode;
 
         private readonly int safeFreeCellsCount;
 
@@ -19,7 +20,7 @@ namespace AI2048.AI.Searchers
 
         private readonly SearchStatistics searchStatistics;
 
-        public ExhaustiveDeathAvoider(MaximizingNode rootNode, int searchDepth = 13, int safeFreeCellsCount = 3)
+        public ExhaustiveDeathAvoider(MaximizingNode<T> rootNode, int searchDepth = 13, int safeFreeCellsCount = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = searchDepth;
@@ -47,13 +48,13 @@ namespace AI2048.AI.Searchers
 
             return new SearchResult
             {
-                SearcherName = nameof(ExhaustiveDeathAvoider),
+                SearcherName = nameof(ExhaustiveDeathAvoider<T>),
                 MoveEvaluations = evaluationResult,
                 SearchStatistics = this.searchStatistics
             };
         }
 
-        private bool GetRiskOfDeath(MaximizingNode maximizingNode, int depth)
+        private bool GetRiskOfDeath(MaximizingNode<T> maximizingNode, int depth)
         {
             this.searchStatistics.NodesTraversed++;
 
@@ -73,7 +74,7 @@ namespace AI2048.AI.Searchers
             return maximizingNode.Children.Values.All(child => this.GetRiskOfDeath(child, depth - 1));
         }
 
-        private bool GetRiskOfDeath(MinimizingNode minimizingNode, int depth)
+        private bool GetRiskOfDeath(MinimizingNode<T> minimizingNode, int depth)
         {
             this.searchStatistics.NodesTraversed++;
 

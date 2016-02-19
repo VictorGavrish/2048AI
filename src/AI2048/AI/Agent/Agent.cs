@@ -22,21 +22,21 @@ namespace AI2048.AI.Agent
             
             this.History.Add(grid);
 
-            var heuristic = new AllRotations(new VictorHeuristic());
-            var rootNode = new MaximizingNode(grid, heuristic);
+            var heuristic = new AllRotations<double>(new VictorHeuristic());
+            var rootNode = new MaximizingNode<double>(grid, heuristic);
 
             if (rootNode.GameOver)
             {
                 throw new GameOverException();
             }
 
-            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(500));
-            var exhaustiveDeathAvoider = new ExhaustiveDeathAvoider(rootNode);
+            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(100));
+            var exhaustiveDeathAvoider = new ExhaustiveDeathAvoider<double>(rootNode, 15);
             var alphaBetaMiniMaxer = new AlphaBetaMiniMaxer(rootNode);
             var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<AlphaBetaMiniMaxer>(alphaBetaMiniMaxer, searchAnalyzer);
 
-            var strategy = new CombinedStrategy(exhaustiveDeathAvoider, dynamicDepthSearcher);
-            //var strategy = new SimpleStrategy(dynamicDepthSearcher);
+            //var strategy = new CombinedStrategy(exhaustiveDeathAvoider, alphaBetaMiniMaxer);
+            var strategy = new SimpleStrategy(dynamicDepthSearcher);
 
             var decision = strategy.MakeDecision();
 

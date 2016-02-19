@@ -3,45 +3,59 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
 
     using AI2048.AI.Heristics;
     using AI2048.Game;
 
-    public class MinimizingNode : Node
+    public class MinimizingNode<T> : Node<T> where T : IComparable<T>
     {
-        private readonly MaximizingNode parentNode;
+        private readonly MaximizingNode<T> parentNode;
 
-        public MinimizingNode(LogarithmicGrid grid, MaximizingNode parentNode, IHeuristic heuristic)
+        public MinimizingNode(LogarithmicGrid grid, MaximizingNode<T> parentNode, IHeuristic<T> heuristic)
             : base(heuristic)
         {
             this.parentNode = parentNode;
             this.Grid = grid;
 
-            this.childrenLazy = new Lazy<IEnumerable<MaximizingNode>>(this.GetChildren, false);
+            this.childrenLazy = new Lazy<IEnumerable<MaximizingNode<T>>>(this.GetChildren, false);
         }
 
-        public MaximizingNode RootMaximizingNode => this.parentNode.RootMaximizingNode;
+        public MaximizingNode<T> RootMaximizingNode => this.parentNode.RootMaximizingNode;
         
-        public Dictionary<LogarithmicGrid, MaximizingNode> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
+        public IDictionary<LogarithmicGrid, MaximizingNode<T>> KnownPlayerNodes => this.parentNode.KnownPlayerNodes;
 
-        public Dictionary<LogarithmicGrid, MinimizingNode> KnownComputerNodes => this.parentNode.KnownComputerNodes;
+        public IDictionary<LogarithmicGrid, MinimizingNode<T>> KnownComputerNodes => this.parentNode.KnownComputerNodes;
 
-        public IEnumerable<MaximizingNode> Children => this.childrenLazy.Value;
-        private readonly Lazy<IEnumerable<MaximizingNode>> childrenLazy;
-        private IEnumerable<MaximizingNode> GetChildren()
+        private readonly List<MaximizingNode<T>> computedNodes = new List<MaximizingNode<T>>();
+        private bool allNodesComputed;
+
+        public IEnumerable<MaximizingNode<T>> Children => this.childrenLazy.Value;
+        private readonly Lazy<IEnumerable<MaximizingNode<T>>> childrenLazy;
+        private IEnumerable<MaximizingNode<T>> GetChildren()
         {
-            var possibleStates = this.Grid.NextPossibleWorldStates();
-            foreach (var possibleState in possibleStates)
+            foreach (var node in this.computedNodes)
             {
-                MaximizingNode maximizingNode;
-                if (!this.KnownPlayerNodes.TryGetValue(possibleState, out maximizingNode))
-                {
-                    maximizingNode = new MaximizingNode(possibleState, this, this.Heuristic);
-                    this.KnownPlayerNodes.Add(possibleState, maximizingNode);
-                }
-
-                yield return maximizingNode;
+                yield return node;
             }
+
+            if (!this.allNodesComputed)
+            {
+                foreach (var possibleState in this.Grid.NextPossibleWorldStates().Skip(this.computedNodes.Count))
+                {
+                    MaximizingNode<T> maximizingNode;
+                    if (!this.KnownPlayerNodes.TryGetValue(possibleState, out maximizingNode))
+                    {
+                        maximizingNode = new MaximizingNode<T>(possibleState, this, this.Heuristic);
+                        this.KnownPlayerNodes.Add(possibleState, maximizingNode);
+                    }
+
+                    this.computedNodes.Add(maximizingNode);
+                    yield return maximizingNode;
+                }
+            }
+
+            this.allNodesComputed = true;
         }
     }
 }
