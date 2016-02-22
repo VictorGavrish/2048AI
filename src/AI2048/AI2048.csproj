@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI\GameOverException.cs" />
+    <Compile Include="AI\Searchers\AlphaBetaMiniMaxer.cs" />
     <Compile Include="AI\Searchers\DynamicDepthSearcherWrapper.cs" />
     <Compile Include="AI\Searchers\IConfigurableDepthSearcher.cs" />
     <Compile Include="AI\Searchers\IConfigurableMovesSearcher.cs" />
@@ -95,7 +96,7 @@
     <Compile Include="AI\Searchers\ResultAnalyzers\MinDurationSearchResultAnalyzer.cs" />
     <Compile Include="AI\Searchers\Models\AlphaBetaSearchStatistics.cs" />
     <Compile Include="AI\Searchers\ExhaustiveDeathAvoider.cs" />
-    <Compile Include="AI\Searchers\AlphaBetaMiniMaxer.cs" />
+    <Compile Include="AI\Searchers\ExpectoMaxer.cs" />
     <Compile Include="AI\Searchers\ISearcher.cs" />
     <Compile Include="AI\Searchers\Models\SearchResult.cs" />
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />

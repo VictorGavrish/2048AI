@@ -15,6 +15,16 @@
             { 2, 3, 4, 16 },
             { 5, 8, 16, 128 }
         };
+        
+        public double Evaluate(MaximizingNode<double> node)
+        {
+            return this.Evaluate((Node<double>)node);
+        }
+
+        public double Evaluate(MinimizingNode<double> node)
+        {
+            return this.Evaluate((Node<double>)node);
+        }
 
         //private static readonly long[,] HeatMap =
         //{
@@ -42,7 +52,7 @@
             }
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double Evaluate(Node<double> node)
         {
             var grid = node.Grid;

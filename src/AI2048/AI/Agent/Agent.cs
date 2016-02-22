@@ -30,13 +30,14 @@ namespace AI2048.AI.Agent
                 throw new GameOverException();
             }
 
-            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(100));
+            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(50));
             var exhaustiveDeathAvoider = new ExhaustiveDeathAvoider<double>(rootNode, 15);
-            var alphaBetaMiniMaxer = new AlphaBetaMiniMaxer(rootNode);
+            var alphaBetaMiniMaxer = new AlphaBetaMiniMaxer(rootNode, 3);
+            var expectoMaxer = new ExpectoMaxer(rootNode, 3);
             var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<AlphaBetaMiniMaxer>(alphaBetaMiniMaxer, searchAnalyzer);
 
             //var strategy = new CombinedStrategy(exhaustiveDeathAvoider, alphaBetaMiniMaxer);
-            var strategy = new SimpleStrategy(dynamicDepthSearcher);
+            var strategy = new SimpleStrategy(expectoMaxer);
 
             var decision = strategy.MakeDecision();
 

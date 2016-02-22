@@ -18,6 +18,7 @@
             this.Grid = grid;
             this.parentNode = parentNode;
 
+            this.heuristicLazy = new Lazy<T>(() => this.Heuristic.Evaluate(this), false);
             this.possibleMovesLazy = new Lazy<IEnumerable<Move>>(this.GetPossibleMoves, false);
             this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode<T>>>(this.GetChildrenByMove, false);
             this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
@@ -28,6 +29,8 @@
         {
             this.MakeRoot();
         }
+
+        public double Probabilty { get; set; }
 
         private MinimizingNode<T> parentNode;
         private bool isRootNode;
@@ -46,6 +49,9 @@
             this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode<T>>();
             this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
         }
+
+        private readonly Lazy<T> heuristicLazy;
+        public T HeuristicValue => this.heuristicLazy.Value;
 
         public IDictionary<Move, MinimizingNode<T>> Children => this.childrenByMoveLazy.Value;
         private readonly Lazy<IDictionary<Move, MinimizingNode<T>>> childrenByMoveLazy;
@@ -73,7 +79,7 @@
 
         public IEnumerable<Move> PossibleMoves => this.possibleMovesLazy.Value;
         private readonly Lazy<IEnumerable<Move>> possibleMovesLazy;
-        private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => !this.Grid.Equals(this.Grid.MakeMove(move)));
+        private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => !this.Grid.Equals(this.Grid.MakeMove(move))).ToArray();
 
         public bool GameOver => this.gameOverLazy.Value;
         private readonly Lazy<bool> gameOverLazy;

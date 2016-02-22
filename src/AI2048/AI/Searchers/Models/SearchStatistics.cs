@@ -1,5 +1,6 @@
 namespace AI2048.AI.Searchers.Models
 {
+    using System;
     using System.Globalization;
     using System.Text;
 
@@ -18,25 +19,8 @@ namespace AI2048.AI.Searchers.Models
         public int TerminalNodeCount { get; set; }
 
         public int RootNodeGrandchildren { get; set; }
-        
-        public long EstimatedTotalNodes
-        {
-            get
-            {
-                long result = 1;
-                for (var i = this.SearchDepth; i >= 0; i -= 2)
-                {
-                    result *= this.RootNodeGrandchildren;
-                }
 
-                if (this.SearchDepth % 2 != 0)
-                {
-                    result *= 3;
-                }
-
-                return result;
-            }
-        }
+        public long EstimatedTotalNodes => (long)Math.Pow(this.RootNodeGrandchildren, this.SearchDepth);
 
         public override string ToString()
         {

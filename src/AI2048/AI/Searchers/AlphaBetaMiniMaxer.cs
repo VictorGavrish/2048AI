@@ -24,7 +24,7 @@ namespace AI2048.AI.Searchers
 
         private int searchDepth;
 
-        public AlphaBetaMiniMaxer(MaximizingNode<double> rootNode, int minSearchDepth = 6)
+        public AlphaBetaMiniMaxer(MaximizingNode<double> rootNode, int minSearchDepth = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
@@ -110,7 +110,7 @@ namespace AI2048.AI.Searchers
             var max = double.NegativeInfinity;
             foreach (var child in children)
             {
-                max = Math.Max(max, this.GetPositionEvaluation(child, depth - 1, alpha, beta));
+                max = Math.Max(max, this.GetPositionEvaluation(child, depth, alpha, beta));
                 alpha = Math.Max(alpha, max);
 
                 if (beta <= alpha)
@@ -126,12 +126,6 @@ namespace AI2048.AI.Searchers
         private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodesTraversed++;
-
-            if (depth == 0)
-            {
-                this.searchStatistics.TerminalNodeCount++;
-                return minimizingNode.HeuristicValue;
-            }
 
             var children = minimizingNode.Children;
             if (depth > 1)

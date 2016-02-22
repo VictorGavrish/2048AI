@@ -1,6 +1,7 @@
 ﻿namespace Runner
 {
     using System;
+    using System.Collections.Generic;
 
     using AI2048.AI;
     using AI2048.AI.Agent;
@@ -28,23 +29,32 @@
             ////    }
             ////}
 
-            var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+            var gameOverStates = new List<LogarithmicGrid>();
 
-            var agent = new Agent();
-            try
+            for (int i = 0; i < 10; i++)
             {
-                while (true)
+                var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+
+                var agent = new Agent();
+                try
                 {
-                    var move = agent.MakeDecision(logGrid);
-                    logGrid = logGrid.MakeMove(move).AddRandomTile();
+                    while (true)
+                    {
+                        var move = agent.MakeDecision(logGrid);
+                        logGrid = logGrid.MakeMove(move).AddRandomTile();
+                    }
+                }
+                catch (GameOverException)
+                {
+                    Console.WriteLine("GAME OVER!");
+                    gameOverStates.Add(logGrid);
                 }
             }
-            catch (GameOverException)
-            {
-                Console.WriteLine("GAME OVER!");
-            }
 
-            Console.ReadKey();
+            foreach (var state in gameOverStates)
+            {
+                Console.WriteLine(state);
+            }
         }
     }
 }
