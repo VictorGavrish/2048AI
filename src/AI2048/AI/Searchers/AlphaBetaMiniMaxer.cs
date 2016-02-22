@@ -12,9 +12,9 @@ namespace AI2048.AI.Searchers
 
     public class AlphaBetaMiniMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
     {
-        private static readonly double MinEvaluation = -1000000000;
+        private const double MinEvaluation = -1000000000000;
 
-        private const double MaxEvaluation = 1000000000;
+        private const double MaxEvaluation = 1000000000000;
         
         private readonly MaximizingNode<double> rootNode;
 

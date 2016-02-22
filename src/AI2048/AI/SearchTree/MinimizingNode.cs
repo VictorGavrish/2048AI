@@ -18,7 +18,7 @@
             this.parentNode = parentNode;
             this.Grid = grid;
 
-            this.childrenLazy = new Lazy<IEnumerable<MaximizingNode<T>>>(this.GetChildren, false);
+            //this.childrenLazy = new Lazy<IEnumerable<MaximizingNode<T>>>(this.GetChildren, false);
         }
 
         public MaximizingNode<T> RootMaximizingNode => this.parentNode.RootMaximizingNode;
@@ -30,8 +30,7 @@
         private readonly List<MaximizingNode<T>> computedNodes = new List<MaximizingNode<T>>();
         private bool allNodesComputed;
 
-        public IEnumerable<MaximizingNode<T>> Children => this.childrenLazy.Value;
-        private readonly Lazy<IEnumerable<MaximizingNode<T>>> childrenLazy;
+        public IEnumerable<MaximizingNode<T>> Children => this.GetChildren();
         private IEnumerable<MaximizingNode<T>> GetChildren()
         {
             foreach (var node in this.computedNodes)
