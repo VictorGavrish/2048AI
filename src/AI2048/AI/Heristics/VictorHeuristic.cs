@@ -10,12 +10,23 @@
     {
         private static readonly int[,] HeatMap =
         {
-            { 0, 0, 1,  2 },
-            { 0, 0, 1,  4 },
-            { 1, 1, 1,  8 },
-            { 2, 4, 8, 64 }
+            { 0, 0, 1,   2 },
+            { 0, 0, 1,   4 },
+            { 1, 1, 1,   8 },
+            { 2, 4, 8, 128 }
         };
+        
+        public double Evaluate(MaximizingNode<double> node)
+        {
+            return this.Evaluate((Node<double>)node);
+        }
 
+        public double Evaluate(MinimizingNode<double> node)
+        {
+            return this.Evaluate((Node<double>)node);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double Evaluate(Node<double> node)
         {
             var grid = node.Grid;

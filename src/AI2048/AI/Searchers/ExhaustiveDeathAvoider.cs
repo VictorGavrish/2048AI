@@ -20,7 +20,7 @@ namespace AI2048.AI.Searchers
 
         private readonly SearchStatistics searchStatistics;
 
-        public ExhaustiveDeathAvoider(MaximizingNode<T> rootNode, int searchDepth = 13, int safeFreeCellsCount = 3)
+        public ExhaustiveDeathAvoider(MaximizingNode<T> rootNode, int searchDepth = 7, int safeFreeCellsCount = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = searchDepth;
@@ -40,7 +40,7 @@ namespace AI2048.AI.Searchers
 
             var evaluationResult = this.rootNode.Children.ToDictionary(
                 kvp => kvp.Key, 
-                kvp => this.GetRiskOfDeath(kvp.Value, this.searchDepth) ? (double)DeathEvaluation : 0);
+                kvp => this.GetRiskOfDeath(kvp.Value, this.searchDepth) ? DeathEvaluation : 0);
 
             var endTime = SystemClock.Instance.Now;
 
@@ -65,13 +65,13 @@ namespace AI2048.AI.Searchers
             }
 
             if (depth == 0 || maximizingNode.EmptyCellCount >= this.safeFreeCellsCount
-                || maximizingNode.EmptyCellCount >= depth * 2)
+                || maximizingNode.EmptyCellCount >= depth)
             {
                 this.searchStatistics.TerminalNodeCount++;
                 return false;
             }
 
-            return maximizingNode.Children.Values.All(child => this.GetRiskOfDeath(child, depth - 1));
+            return maximizingNode.Children.Values.All(child => this.GetRiskOfDeath(child, depth));
         }
 
         private bool GetRiskOfDeath(MinimizingNode<T> minimizingNode, int depth)

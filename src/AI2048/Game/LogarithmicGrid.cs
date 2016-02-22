@@ -82,6 +82,42 @@
             }
         }
 
+        public IEnumerable<LogarithmicGrid> NextPossibleWorldStatesWith2()
+        {
+            for (var x = 0; x < 4; x++)
+            {
+                for (var y = 0; y < 4; y++)
+                {
+                    if (this.grid[x, y] != 0)
+                    {
+                        continue;
+                    }
+
+                    var newStateWith2 = this.CloneMatrix();
+                    newStateWith2[x, y] = 1;
+                    yield return new LogarithmicGrid(newStateWith2);
+                }
+            }
+        }
+
+        public IEnumerable<LogarithmicGrid> NextPossibleWorldStatesWith4()
+        {
+            for (var x = 0; x < 4; x++)
+            {
+                for (var y = 0; y < 4; y++)
+                {
+                    if (this.grid[x, y] != 0)
+                    {
+                        continue;
+                    }
+
+                    var newStateWith4 = this.CloneMatrix();
+                    newStateWith4[x, y] = 2;
+                    yield return new LogarithmicGrid(newStateWith4);
+                }
+            }
+        }
+
         public IEnumerable<LogarithmicGrid> NextPossibleWorldStates()
         {
             for (var x = 0; x < 4; x++)

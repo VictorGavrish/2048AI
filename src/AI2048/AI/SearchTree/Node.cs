@@ -11,15 +11,16 @@
         protected Node(IHeuristic<T> heuristic)
         {
             this.Heuristic = heuristic;
-            this.heuristicLazy = new Lazy<T>(() => this.Heuristic.Evaluate(this), false);
+
+            this.emptyCellCountLazy = new Lazy<int>(this.GetEmptyCellCount, false);
         }
 
         public LogarithmicGrid Grid { get; protected set; }
 
         public readonly IHeuristic<T> Heuristic;
-        private readonly Lazy<T> heuristicLazy;
-        public T HeuristicValue => this.heuristicLazy.Value;
-        
-        public int EmptyCellCount => this.Grid.Flatten().Count(i => i == 0);
+
+        public int EmptyCellCount => this.emptyCellCountLazy.Value;
+        private readonly Lazy<int> emptyCellCountLazy;
+        private int GetEmptyCellCount() => this.Grid.Flatten().Count(i => i == 0);
     }
 }

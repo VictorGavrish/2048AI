@@ -10,10 +10,17 @@ namespace AI2048.AI.Heristics
 
     public class OvolveHeuristic : IHeuristic<double>
     {
-        public double Evaluate(Node<double> node)
+        public double Evaluate(MaximizingNode<double> node)
         {
             var result = GetMonotonicity(node) + GetMaxValueEvalution(node) + GetEmptyCellEvalution(node)
                          + GetSmoothness(node) * 0.1;
+
+            return result;
+        }
+
+        public double Evaluate(MinimizingNode<double> node)
+        {
+            var result = GetMonotonicity(node) + GetEmptyCellEvalution(node);
 
             return result;
         }
