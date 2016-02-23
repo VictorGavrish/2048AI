@@ -102,7 +102,6 @@
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />
     <Compile Include="AI\Strategy\IStrategy.cs" />
     <Compile Include="AI\Strategy\SimpleStrategy.cs" />
-    <Compile Include="Game\LogarithmicGridExtensions.cs" />
     <Compile Include="AI\Heristics\OvolveHeuristic.cs" />
     <Compile Include="AI\Strategy\CombinedStrategy.cs" />
     <Compile Include="AI\Heristics\IHeuristic.cs" />

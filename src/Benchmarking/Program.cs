@@ -6,7 +6,7 @@
     {
         static void Main(string[] args)
         {
-            var result = BenchmarkRunner.Run<EqualsBenchmark>();
+            var result = BenchmarkRunner.Run<TraverseBenchmark>();
         }
     }
 }

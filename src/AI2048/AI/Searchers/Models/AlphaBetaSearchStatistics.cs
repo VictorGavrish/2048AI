@@ -14,6 +14,7 @@ namespace AI2048.AI.Searchers.Models
             var sb = new StringBuilder();
 
             sb.Append(base.ToString());
+            sb.AppendLine($"Estimated total nodes:           {this.EstimatedTotalNodes}");
             sb.AppendLine($"Maximizing node branches pruned: {this.MaximizingNodeBranchesPruned}");
             sb.AppendLine($"Minimizing node branches pruned: {this.MinimizingNodeBranchesPruned}");
 

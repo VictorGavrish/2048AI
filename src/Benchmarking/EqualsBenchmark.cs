@@ -5,20 +5,10 @@
     using AI2048.Game;
 
     using BenchmarkDotNet.Attributes;
-    using BenchmarkDotNet.Configs;
-    using BenchmarkDotNet.Jobs;
 
     [Config(typeof(Config))]
     public class EqualsBenchmark
     {
-        private class Config : ManualConfig
-        {
-            public Config()
-            {
-                this.Add(Job.RyuJitX64);
-            }
-        }
-
         private readonly byte[,] grid1 = new byte[4, 4];
 
         private readonly byte[,] grid2 = new byte[4, 4];

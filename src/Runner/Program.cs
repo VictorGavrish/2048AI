@@ -12,49 +12,64 @@
     {
         private static void Main(string[] args)
         {
-            //using (var game = new GamePage())
-            //{
-            //    var agent = new Agent();
-            //    try
-            //    {
-            //        while (true)
-            //        {
-            //            var move = agent.MakeDecision(game.GridState);
-            //            game.Turn(move);
-            //        }
-            //    }
-            //    catch (GameOverException)
-            //    {
-            //        game.TakeScreenshot().SaveAsFile("game_" + game.Score + ".png", ImageFormat.Png);
-            //        Console.WriteLine(game.Score);
-            //    }
-            //}
+            //RunGameInBrowser();
 
             var gameOverStates = new List<LogarithmicGrid>();
 
-            for (int i = 0; i < 10; i++)
-            {
-                var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+            var times = 1;
 
-                var agent = new Agent();
-                try
-                {
-                    while (true)
-                    {
-                        var move = agent.MakeDecision(logGrid);
-                        logGrid = logGrid.MakeMove(move).AddRandomTile();
-                    }
-                }
-                catch (GameOverException)
-                {
-                    Console.WriteLine("GAME OVER!");
-                    gameOverStates.Add(logGrid);
-                }
+            for (var i = 0; i < times; i++)
+            {
+                var logGrid = RunGameInConsole();
+
+                gameOverStates.Add(logGrid);
             }
 
             foreach (var state in gameOverStates)
             {
                 Console.WriteLine(state);
+            }
+        }
+
+        private static LogarithmicGrid RunGameInConsole()
+        {
+            var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+
+            var agent = new Agent();
+            try
+            {
+                while (true)
+                {
+                    var move = agent.MakeDecision(logGrid);
+                    logGrid = logGrid.MakeMove(move).AddRandomTile();
+                }
+            }
+            catch (GameOverException)
+            {
+                Console.WriteLine("GAME OVER!");
+            }
+
+            return logGrid;
+        }
+
+        private static void RunGameInBrowser()
+        {
+            using (var game = new GamePage())
+            {
+                var agent = new Agent();
+                try
+                {
+                    while (true)
+                    {
+                        var move = agent.MakeDecision(game.GridState);
+                        game.Turn(move);
+                    }
+                }
+                catch (GameOverException)
+                {
+                    game.TakeScreenshot().SaveAsFile("game_" + game.Score + ".png", ImageFormat.Png);
+                    Console.WriteLine(game.Score);
+                }
             }
         }
     }

@@ -19,7 +19,7 @@
             this.parentNode = parentNode;
 
             this.heuristicLazy = new Lazy<T>(() => this.Heuristic.Evaluate(this), false);
-            this.possibleMovesLazy = new Lazy<IEnumerable<Move>>(this.GetPossibleMoves, false);
+            this.possibleStatesLazy = new Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>>(this.GetPossibleStates, false);
             this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode<T>>>(this.GetChildrenByMove, false);
             this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
         }
@@ -59,30 +59,29 @@
         {
             var dictionary = new Dictionary<Move, MinimizingNode<T>>();
 
-            foreach (var move in this.PossibleMoves)
+            foreach (var kvp in this.PossibleStates)
             {
-                var newState = this.Grid.MakeMove(move);
-
                 MinimizingNode<T> minimizingNode;
-
-                if (!this.KnownComputerNodes.TryGetValue(newState, out minimizingNode))
+                if (!this.KnownComputerNodes.TryGetValue(kvp.Value, out minimizingNode))
                 {
-                    minimizingNode = new MinimizingNode<T>(newState, this, this.Heuristic);
-                    this.KnownComputerNodes.Add(newState, minimizingNode);
+                    minimizingNode = new MinimizingNode<T>(kvp.Value, this, this.Heuristic);
+                    this.KnownComputerNodes.Add(kvp.Value, minimizingNode);
                 }
 
-                dictionary.Add(move, minimizingNode);
+                dictionary.Add(kvp.Key, minimizingNode);
             }
 
             return dictionary;
         }
 
-        public IEnumerable<Move> PossibleMoves => this.possibleMovesLazy.Value;
-        private readonly Lazy<IEnumerable<Move>> possibleMovesLazy;
-        private IEnumerable<Move> GetPossibleMoves() => Moves.Where(move => !this.Grid.Equals(this.Grid.MakeMove(move))).ToArray();
+        public IEnumerable<KeyValuePair<Move, LogarithmicGrid>> PossibleStates => this.possibleStatesLazy.Value;
+        private readonly Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>> possibleStatesLazy;
+        private IEnumerable<KeyValuePair<Move, LogarithmicGrid>> GetPossibleStates() => Moves
+            .Select(move => new KeyValuePair<Move, LogarithmicGrid>(move, this.Grid.MakeMove(move)))
+            .Where(kvp => !kvp.Value.Equals(this.Grid));
 
         public bool GameOver => this.gameOverLazy.Value;
         private readonly Lazy<bool> gameOverLazy;
-        private bool GetGameOver() => !this.PossibleMoves.Any();
+        private bool GetGameOver() => !this.PossibleStates.Any();
     }
 }

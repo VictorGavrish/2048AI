@@ -16,7 +16,7 @@ namespace AI2048.AI.Searchers
 
         private readonly MaximizingNode<double> rootNode;
 
-        private SearchStatistics searchStatistics;
+        private readonly SearchStatistics searchStatistics;
 
         private IEnumerable<Move> allowedMoves;
 
@@ -42,6 +42,8 @@ namespace AI2048.AI.Searchers
             this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.searchDepth);
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
             this.searchStatistics.SearchDepth = this.searchDepth;
+            this.searchStatistics.KnownPlayerNodes = this.rootNode.KnownPlayerNodes.Count;
+            this.searchStatistics.KnownComputerNodes = this.rootNode.KnownComputerNodes.Count;
 
             var result = new SearchResult
             {
@@ -65,9 +67,11 @@ namespace AI2048.AI.Searchers
 
         private IDictionary<Move, double> InitializeEvaluation()
         {
-            return this.rootNode.Children.ToDictionary(
-                child => child.Key,
-                child => this.GetPositionEvaluation(child.Value, this.searchDepth));
+            return this.rootNode.Children
+                .Where(kvp => this.allowedMoves?.Contains(kvp.Key) ?? true)
+                .ToDictionary(
+                    child => child.Key,
+                    child => this.GetPositionEvaluation(child.Value, this.searchDepth));
         }
 
         private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth)
