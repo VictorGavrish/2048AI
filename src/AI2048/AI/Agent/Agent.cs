@@ -22,7 +22,7 @@ namespace AI2048.AI.Agent
             
             this.History.Add(grid);
 
-            var heuristic = new VictorHeuristic();
+            var heuristic = new OvolveHeuristic();
             var rootNode = new MaximizingNode<double>(grid, heuristic);
 
             if (rootNode.GameOver)
@@ -34,10 +34,10 @@ namespace AI2048.AI.Agent
             var exhaustiveDeathAvoider = new ExhaustiveDeathAvoider<double>(rootNode, 15);
             var alphaBetaMiniMaxer = new AlphaBetaMiniMaxer(rootNode, 3);
             var expectoMaxer = new ExpectoMaxer(rootNode, 3);
-            var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<AlphaBetaMiniMaxer>(alphaBetaMiniMaxer, searchAnalyzer);
+            var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<ExpectoMaxer>(expectoMaxer, searchAnalyzer);
 
             //var strategy = new CombinedStrategy(exhaustiveDeathAvoider, alphaBetaMiniMaxer);
-            var strategy = new SimpleStrategy(expectoMaxer);
+            var strategy = new SimpleStrategy(dynamicDepthSearcher);
 
             var decision = strategy.MakeDecision();
 

@@ -26,30 +26,31 @@ namespace AI2048.AI.Searchers
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
-        }
 
-        public SearchResult Search()
-        {
             this.searchStatistics = new SearchStatistics
             {
                 RootNodeGrandchildren = this.rootNode.Children.Values.Sum(c => c.Children.Count())
             };
+        }
 
+        public SearchResult Search()
+        {
             var startTime = SystemClock.Instance.Now;
 
             var evaluationResult = this.InitializeEvaluation();
 
-            this.searchStatistics.SearchExhaustive =
-                evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.searchDepth);
+            this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.searchDepth);
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
             this.searchStatistics.SearchDepth = this.searchDepth;
 
-            return new SearchResult
+            var result = new SearchResult
             {
                 SearcherName = nameof(ExpectoMaxer),
                 MoveEvaluations = evaluationResult,
                 SearchStatistics = this.searchStatistics
             };
+
+            return result;
         }
 
         public void SetDepth(int depth)
@@ -64,22 +65,9 @@ namespace AI2048.AI.Searchers
 
         private IDictionary<Move, double> InitializeEvaluation()
         {
-            var result = new Dictionary<Move, double>();
-
-            var alpha = MinEvaluation;
-
-            var max = double.NegativeInfinity;
-            foreach (var child in this.rootNode.Children.Where(child => this.allowedMoves?.Contains(child.Key) ?? true))
-            {
-                this.searchStatistics.NodesTraversed++;
-
-                max = Math.Max(max, this.GetPositionEvaluation(child.Value, this.searchDepth));
-                alpha = Math.Max(alpha, max);
-
-                result.Add(child.Key, max);
-            }
-
-            return result;
+            return this.rootNode.Children.ToDictionary(
+                child => child.Key,
+                child => this.GetPositionEvaluation(child.Value, this.searchDepth));
         }
 
         private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth)
@@ -105,7 +93,12 @@ namespace AI2048.AI.Searchers
         {
             this.searchStatistics.NodesTraversed++;
 
-            return minimizingNode.Children.Average(child => this.GetPositionEvaluation(child, depth - 1));
+            var resultWith2 = minimizingNode.ChildrenWith2.Average(child => this.GetPositionEvaluation(child, depth - 1));
+            var resultWith4 = minimizingNode.ChildrenWith4.Average(child => this.GetPositionEvaluation(child, depth - 1));
+
+            var result = resultWith2 * 0.9 + resultWith4 * 0.1;
+            
+            return result;
         }
     }
 }

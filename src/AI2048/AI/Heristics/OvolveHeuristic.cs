@@ -12,7 +12,9 @@ namespace AI2048.AI.Heristics
     {
         public double Evaluate(MaximizingNode<double> node)
         {
-            var result = GetMonotonicity(node) + GetMaxValueEvalution(node) + GetEmptyCellEvalution(node)
+            var result = GetMonotonicity(node) 
+                         + GetMaxValueEvalution(node) 
+                         + GetEmptyCellEvalution(node) * 2.7
                          + GetSmoothness(node) * 0.1;
 
             return result;
