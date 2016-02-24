@@ -35,8 +35,7 @@ namespace AI2048.AI.Strategy
 
             Console.WriteLine(searchResults);
 
-            var decision =
-                searchResults.MoveEvaluations.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First();
+            var decision = searchResults.BestMove;
 
             return decision;
         }

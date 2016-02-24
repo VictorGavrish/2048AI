@@ -8,6 +8,12 @@ namespace AI2048.AI.Searchers.Models
 
     public class SearchResult
     {
+        public LogarithmicGrid RootGrid { get; set; }
+
+        public Move BestMove { get; set; }
+
+        public double BestMoveEvaluation { get; set; }
+
         public IDictionary<Move, double> MoveEvaluations { get; set; }
 
         public string SearcherName { get; set; }
@@ -18,7 +24,10 @@ namespace AI2048.AI.Searchers.Models
         {
             var sb = new StringBuilder();
 
+            sb.AppendLine(this.RootGrid.ToString());
             sb.AppendLine($"Search result for searcher {this.SearcherName}:");
+            sb.AppendLine($"Best move: {this.BestMove}");
+            sb.AppendLine($"Best move score: {this.BestMoveEvaluation}");
             sb.Append(EvaluationToString(this.MoveEvaluations));
             sb.Append(this.SearchStatistics);
 

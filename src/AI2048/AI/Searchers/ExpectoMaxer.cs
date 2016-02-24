@@ -47,6 +47,9 @@ namespace AI2048.AI.Searchers
 
             var result = new SearchResult
             {
+                RootGrid = this.rootNode.Grid,
+                BestMove = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First(),
+                BestMoveEvaluation = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Value).First(),
                 SearcherName = nameof(ExpectoMaxer),
                 MoveEvaluations = evaluationResult,
                 SearchStatistics = this.searchStatistics
@@ -84,21 +87,21 @@ namespace AI2048.AI.Searchers
                 return MinEvaluation + this.searchDepth - depth;
             }
 
-            if (depth == 0)
-            {
-                this.searchStatistics.TerminalNodeCount++;
-                return maximizingNode.HeuristicValue;
-            }
-
-            return maximizingNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth));
+            return maximizingNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth - 1));
         }
 
         private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth)
         {
             this.searchStatistics.NodesTraversed++;
 
-            var resultWith2 = minimizingNode.ChildrenWith2.Average(child => this.GetPositionEvaluation(child, depth - 1));
-            var resultWith4 = minimizingNode.ChildrenWith4.Average(child => this.GetPositionEvaluation(child, depth - 1));
+            if (depth == 0)
+            {
+                this.searchStatistics.TerminalNodeCount++;
+                return minimizingNode.HeuristicValue;
+            }
+
+            var resultWith2 = minimizingNode.ChildrenWith2.Average(child => this.GetPositionEvaluation(child, depth));
+            var resultWith4 = minimizingNode.ChildrenWith4.Average(child => this.GetPositionEvaluation(child, depth));
 
             var result = resultWith2 * 0.9 + resultWith4 * 0.1;
             

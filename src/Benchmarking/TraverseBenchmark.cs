@@ -24,7 +24,6 @@
             var rootGrid = LogarithmicGrid.Parse(this.startgingNode);
 
             this.rootNode = new MaximizingNode<double>(rootGrid, null);
-            this.rootNode.MakeRoot();
         }
 
         [Benchmark]

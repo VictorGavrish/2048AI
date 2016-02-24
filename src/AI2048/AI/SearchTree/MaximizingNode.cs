@@ -27,28 +27,22 @@
         public MaximizingNode(LogarithmicGrid grid, IHeuristic<T> heuristic)
             : this(grid, null, heuristic)
         {
-            this.MakeRoot();
+            this.isRootNode = true;
+            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode<T>>();
+            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
         }
 
         public double Probabilty { get; set; }
 
-        private MinimizingNode<T> parentNode;
-        private bool isRootNode;
+        private readonly MinimizingNode<T> parentNode;
+        private readonly bool isRootNode;
         public MaximizingNode<T> RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
 
-        private IDictionary<LogarithmicGrid, MaximizingNode<T>> knownPlayerNodes;
-        public IDictionary<LogarithmicGrid, MaximizingNode<T>> KnownPlayerNodes => this.knownPlayerNodes ?? this.parentNode.KnownPlayerNodes;
+        private readonly IDictionary<LogarithmicGrid, MaximizingNode<T>> knownPlayerNodes;
+        public IDictionary<LogarithmicGrid, MaximizingNode<T>> KnownPlayerNodes => this.isRootNode ? this.knownPlayerNodes : this.parentNode.KnownPlayerNodes;
 
-        private IDictionary<LogarithmicGrid, MinimizingNode<T>> knownComputerNodes;
-        public IDictionary<LogarithmicGrid, MinimizingNode<T>> KnownComputerNodes => this.knownComputerNodes ?? this.parentNode.KnownComputerNodes;
-
-        public void MakeRoot()
-        {
-            this.isRootNode = true;
-            this.parentNode = null;
-            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode<T>>();
-            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
-        }
+        private readonly IDictionary<LogarithmicGrid, MinimizingNode<T>> knownComputerNodes;
+        public IDictionary<LogarithmicGrid, MinimizingNode<T>> KnownComputerNodes => this.isRootNode ? this.knownComputerNodes : this.parentNode.KnownComputerNodes;
 
         private readonly Lazy<T> heuristicLazy;
         public T HeuristicValue => this.heuristicLazy.Value;
