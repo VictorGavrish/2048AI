@@ -12,9 +12,9 @@
     {
         private static readonly long[,] HeatMap =
         {
-            { 0, 0, 2, 5 }, 
-            { 0, 1, 3, 8 }, 
-            { 2, 3, 4, 16 }, 
+            { 0, 0, 2, 5 },
+            { 0, 1, 3, 8 },
+            { 2, 3, 4, 16 },
             { 5, 8, 16, 128 }
         };
 
@@ -23,14 +23,14 @@
         ////    { 0, 0, 1, 3 },
         ////    { 0, 1, 2, 4 },
         ////    { 2, 3, 4, 5 },
-        ////    { 5, 8, 16, 128 }
+        ////    { 6, 8, 16, 128 }
         ////};
 
         private static readonly long[][,] HeatMaps;
 
         static VictorHeuristic()
         {
-            var heatMaps = new List<long[,]> { HeatMap };
+            var heatMaps = new List<long[,]> { HeatMap, /*Mirror(HeatMap)*/ };
 
             var heatMap = HeatMap;
             
@@ -39,6 +39,7 @@
                 heatMap = RotateCw(heatMap);
 
                 heatMaps.Add(heatMap);
+                //heatMaps.Add(Mirror(heatMap));
             }
 
             HeatMaps = heatMaps.ToArray();

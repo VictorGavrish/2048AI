@@ -93,6 +93,7 @@
     <Compile Include="AI\Searchers\DynamicDepthSearcherWrapper.cs" />
     <Compile Include="AI\Searchers\IConfigurableDepthSearcher.cs" />
     <Compile Include="AI\Searchers\IConfigurableMovesSearcher.cs" />
+    <Compile Include="AI\Searchers\ProbabilityLimitedExpectoMaxer.cs" />
     <Compile Include="AI\Searchers\ResultAnalyzers\ISearchResultAnalyzer.cs" />
     <Compile Include="AI\Searchers\ResultAnalyzers\MinDurationSearchResultAnalyzer.cs" />
     <Compile Include="AI\Searchers\Models\AlphaBetaSearchStatistics.cs" />

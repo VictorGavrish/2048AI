@@ -32,8 +32,6 @@
             this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
         }
 
-        public double Probabilty { get; set; }
-
         private readonly MinimizingNode<T> parentNode;
         private readonly bool isRootNode;
         public MaximizingNode<T> RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;

@@ -12,28 +12,34 @@
     {
         private static void Main(string[] args)
         {
-            //RunGameInBrowser();
+            RunGameInBrowser();
 
-            var gameOverStates = new List<LogarithmicGrid>();
+            //var gameOverStates = new List<LogarithmicGrid>();
 
-            var times = 1;
+            //var times = 1;
 
-            for (var i = 0; i < times; i++)
-            {
-                var logGrid = RunGameInConsole();
+            //for (var i = 0; i < times; i++)
+            //{
+            //    var logGrid = RunGameInConsole();
 
-                gameOverStates.Add(logGrid);
-            }
+            //    gameOverStates.Add(logGrid);
+            //}
 
-            foreach (var state in gameOverStates)
-            {
-                Console.WriteLine(state);
-            }
+            //foreach (var state in gameOverStates)
+            //{
+            //    Console.WriteLine(state);
+            //}
         }
 
         private static LogarithmicGrid RunGameInConsole()
         {
             var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+
+            //var logGrid = LogarithmicGrid.Parse(@"
+            //                                     2048   16    4    2
+            //                                      256   64   16    4
+            //                                      128    8    8    2
+            //                                       64    4    2    0");
 
             var agent = new Agent();
             try

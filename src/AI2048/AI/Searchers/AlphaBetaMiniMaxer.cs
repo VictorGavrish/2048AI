@@ -74,7 +74,7 @@ namespace AI2048.AI.Searchers
                 .Where(child => this.allowedMoves?.Contains(child.Key) ?? true)
                 .OrderByDescending(child => child.Value.HeuristicValue))
             {
-                this.searchStatistics.NodesTraversed++;
+                this.searchStatistics.NodeCount++;
 
                 max = Math.Max(max, this.GetPositionEvaluation(child.Value, this.searchDepth, alpha, MaxEvaluation));
                 alpha = Math.Max(alpha, max);
@@ -87,7 +87,7 @@ namespace AI2048.AI.Searchers
 
         private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth, double alpha, double beta)
         {
-            this.searchStatistics.NodesTraversed++;
+            this.searchStatistics.NodeCount++;
 
             if (maximizingNode.GameOver)
             {
@@ -125,7 +125,7 @@ namespace AI2048.AI.Searchers
 
         private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth, double alpha, double beta)
         {
-            this.searchStatistics.NodesTraversed++;
+            this.searchStatistics.NodeCount++;
 
             var children = minimizingNode.Children;
             if (depth > 1)

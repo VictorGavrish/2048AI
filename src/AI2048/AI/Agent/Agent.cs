@@ -33,7 +33,9 @@ namespace AI2048.AI.Agent
             var expectoMaxer = new ExpectoMaxer(rootNode);
             var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<ExpectoMaxer>(expectoMaxer, searchAnalyzer);
 
-            var strategy = new SimpleStrategy(dynamicDepthSearcher);
+            var probabilityLimitedExpectoMaxer = new ProbabilityLimitedExpectoMaxer(rootNode);
+
+            var strategy = new SimpleStrategy(probabilityLimitedExpectoMaxer);
 
             var decision = strategy.MakeDecision();
 

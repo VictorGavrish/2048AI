@@ -56,7 +56,7 @@ namespace AI2048.AI.Searchers
 
         private bool GetRiskOfDeath(MaximizingNode<T> maximizingNode, int depth)
         {
-            this.searchStatistics.NodesTraversed++;
+            this.searchStatistics.NodeCount++;
 
             if (maximizingNode.GameOver)
             {
@@ -76,7 +76,7 @@ namespace AI2048.AI.Searchers
 
         private bool GetRiskOfDeath(MinimizingNode<T> minimizingNode, int depth)
         {
-            this.searchStatistics.NodesTraversed++;
+            this.searchStatistics.NodeCount++;
 
             return minimizingNode.Children.Any(child => this.GetRiskOfDeath(child, depth - 1));
         }

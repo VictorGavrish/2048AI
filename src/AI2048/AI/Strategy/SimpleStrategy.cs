@@ -30,7 +30,7 @@ namespace AI2048.AI.Strategy
 
             Console.Clear();
 
-            Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("M:ss.fff", CultureInfo.InvariantCulture));
+            Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("ss.fff", CultureInfo.InvariantCulture));
             Console.WriteLine();
 
             Console.WriteLine(searchResults);
