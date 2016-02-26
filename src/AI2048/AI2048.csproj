@@ -102,6 +102,7 @@
     <Compile Include="AI\Searchers\ISearcher.cs" />
     <Compile Include="AI\Searchers\Models\SearchResult.cs" />
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />
+    <Compile Include="AI\SearchTree\SearchTree.cs" />
     <Compile Include="AI\Strategy\IStrategy.cs" />
     <Compile Include="AI\Strategy\SimpleStrategy.cs" />
     <Compile Include="AI\Heristics\OvolveHeuristic.cs" />

@@ -8,9 +8,9 @@ namespace AI2048.AI.Heristics
     using AI2048.AI.SearchTree;
     using AI2048.Game;
 
-    public class OvolveHeuristic : IHeuristic<double>
+    public class OvolveHeuristic : IHeuristic
     {
-        public double Evaluate(MaximizingNode<double> node)
+        public double Evaluate(MaximizingNode node)
         {
             var result = GetMonotonicity(node) 
                          + GetMaxValueEvalution(node) 
@@ -20,7 +20,7 @@ namespace AI2048.AI.Heristics
             return result;
         }
 
-        public double Evaluate(MinimizingNode<double> node)
+        public double Evaluate(MinimizingNode node)
         {
             var result = GetMonotonicity(node) + GetEmptyCellEvalution(node);
 
@@ -28,13 +28,13 @@ namespace AI2048.AI.Heristics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double GetEmptyCellEvalution(Node<double> node) => Math.Log(node.EmptyCellCount);
+        private static double GetEmptyCellEvalution(Node node) => Math.Log(node.EmptyCellCount);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte GetMaxValueEvalution(Node<double> node) => node.Grid.Flatten().Max();
+        private static byte GetMaxValueEvalution(Node node) => node.Grid.Flatten().Max();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetSmoothness(Node<double> node)
+        private static int GetSmoothness(Node node)
         {
             var smoothness = 0;
 
@@ -77,7 +77,7 @@ namespace AI2048.AI.Heristics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetMonotonicity(Node<double> node)
+        private static int GetMonotonicity(Node node)
         {
             var down = 0;
             var up = 0;

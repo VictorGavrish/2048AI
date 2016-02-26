@@ -2,7 +2,6 @@ namespace AI2048.AI.Strategy
 {
     using System;
     using System.Globalization;
-    using System.Linq;
 
     using AI2048.AI.Searchers;
     using AI2048.Game;

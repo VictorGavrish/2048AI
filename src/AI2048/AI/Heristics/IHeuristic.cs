@@ -4,11 +4,10 @@
 
     using AI2048.AI.SearchTree;
 
-    public interface IHeuristic<T>
-        where T : IComparable<T>
+    public interface IHeuristic
     {
-        T Evaluate(MaximizingNode<T> node);
+        double Evaluate(MaximizingNode node);
 
-        T Evaluate(MinimizingNode<T> node);
+        double Evaluate(MinimizingNode node);
     }
 }

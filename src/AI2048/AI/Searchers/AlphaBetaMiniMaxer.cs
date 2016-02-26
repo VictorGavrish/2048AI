@@ -16,7 +16,7 @@ namespace AI2048.AI.Searchers
 
         private const double MaxEvaluation = 1000000000000;
         
-        private readonly MaximizingNode<double> rootNode;
+        private readonly MaximizingNode rootNode;
 
         private AlphaBetaSearchStatistics searchStatistics;
 
@@ -24,7 +24,7 @@ namespace AI2048.AI.Searchers
 
         private int searchDepth;
 
-        public AlphaBetaMiniMaxer(MaximizingNode<double> rootNode, int minSearchDepth = 3)
+        public AlphaBetaMiniMaxer(MaximizingNode rootNode, int minSearchDepth = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
@@ -85,7 +85,7 @@ namespace AI2048.AI.Searchers
             return result;
         }
 
-        private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodeCount++;
 
@@ -101,7 +101,7 @@ namespace AI2048.AI.Searchers
                 return maximizingNode.HeuristicValue;
             }
 
-            IEnumerable<MinimizingNode<double>> children = maximizingNode.Children.Values;
+            IEnumerable<MinimizingNode> children = maximizingNode.Children.Values;
             if (depth > 1)
             {
                 children = children.OrderByDescending(c => c.HeuristicValue);
@@ -123,7 +123,7 @@ namespace AI2048.AI.Searchers
             return max;
         }
 
-        private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodeCount++;
 

@@ -1,45 +1,44 @@
 namespace AI2048.AI.Agent
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     using AI2048.AI.Heristics;
     using AI2048.AI.Searchers;
-    using AI2048.AI.Searchers.ResultAnalyzers;
     using AI2048.AI.SearchTree;
     using AI2048.AI.Strategy;
     using AI2048.Game;
 
-    using NodaTime;
-
     public class Agent
     {
+        private readonly SearchTree searchTree;
+
+        public Agent(LogarithmicGrid startingGrid)
+        {
+            this.searchTree = new SearchTree(new VictorHeuristic(), startingGrid);
+        }
+
         public List<LogarithmicGrid> History { get; } = new List<LogarithmicGrid>();
 
-        public Move MakeDecision(LogarithmicGrid grid)
+        public Move MakeDecision()
         {
-            this.History.Add(grid);
-
-            var heuristic = new VictorHeuristic();
-            var rootNode = new MaximizingNode<double>(grid, heuristic);
-            
-            if (rootNode.GameOver)
+            if (this.searchTree.RootNode.GameOver)
             {
                 throw new GameOverException();
             }
 
-            var searchAnalyzer = new MinDurationSearchResultAnalyzer(Duration.FromMilliseconds(100));
-            var expectoMaxer = new ExpectoMaxer(rootNode);
-            var dynamicDepthSearcher = new DynamicDepthSearcherWrapper<ExpectoMaxer>(expectoMaxer, searchAnalyzer);
-
-            var probabilityLimitedExpectoMaxer = new ProbabilityLimitedExpectoMaxer(rootNode);
+            var probabilityLimitedExpectoMaxer = new ProbabilityLimitedExpectoMaxer(this.searchTree.RootNode);
 
             var strategy = new SimpleStrategy(probabilityLimitedExpectoMaxer);
 
             var decision = strategy.MakeDecision();
 
             return decision;
+        }
+
+        public void UpdateGrid(LogarithmicGrid grid)
+        {
+            this.History.Add(grid);
+            this.searchTree.MoveRoot(grid);
         }
     }
 }

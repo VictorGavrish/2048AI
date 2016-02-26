@@ -3,24 +3,24 @@
     using System;
     using System.Linq;
 
-    using AI2048.AI.Heristics;
     using AI2048.Game;
 
-    public abstract class Node<T> where T : IComparable<T>
+    public abstract class Node
     {
-        protected Node(IHeuristic<T> heuristic)
+        private readonly Lazy<int> emptyCellCountLazy;
+
+        protected Node(SearchTree searchTree)
         {
-            this.Heuristic = heuristic;
+            this.SearchTree = searchTree;
 
             this.emptyCellCountLazy = new Lazy<int>(this.GetEmptyCellCount, false);
         }
 
+        public int EmptyCellCount => this.emptyCellCountLazy.Value;
+        private int GetEmptyCellCount() => this.Grid.Flatten().Count(i => i == 0);
+
         public LogarithmicGrid Grid { get; protected set; }
 
-        public readonly IHeuristic<T> Heuristic;
-
-        public int EmptyCellCount => this.emptyCellCountLazy.Value;
-        private readonly Lazy<int> emptyCellCountLazy;
-        private int GetEmptyCellCount() => this.Grid.Flatten().Count(i => i == 0);
+        public SearchTree SearchTree { get; }
     }
 }

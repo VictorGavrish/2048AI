@@ -17,7 +17,7 @@ namespace AI2048.AI.Searchers
 
         private static readonly double MinEvaluation = -1000000000;
 
-        private readonly MaximizingNode<double> rootNode;
+        private readonly MaximizingNode rootNode;
 
         private readonly SearchStatistics searchStatistics;
 
@@ -27,7 +27,7 @@ namespace AI2048.AI.Searchers
 
         private readonly int maxSearchDepth;
 
-        public ProbabilityLimitedExpectoMaxer(MaximizingNode<double> rootNode, double minProbability = 0.01, int maxSearchDepth = 6)
+        public ProbabilityLimitedExpectoMaxer(MaximizingNode rootNode, double minProbability = 0.005, int maxSearchDepth = 6)
         {
             this.rootNode = rootNode;
             this.minProbability = minProbability;
@@ -48,8 +48,8 @@ namespace AI2048.AI.Searchers
             this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.maxSearchDepth);
             this.searchStatistics.SearchDepth = this.maxSearchDepth;
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
-            this.searchStatistics.KnownPlayerNodes = this.rootNode.KnownPlayerNodes.Count;
-            this.searchStatistics.KnownComputerNodes = this.rootNode.KnownComputerNodes.Count;
+            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodes.Count;
+            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodes.Count;
 
             var result = new SearchResult
             {
@@ -78,7 +78,7 @@ namespace AI2048.AI.Searchers
                     child => this.GetPositionEvaluation(child.Value, this.maxSearchDepth, 1));
         }
 
-        private double GetPositionEvaluation(MaximizingNode<double> maximizingNode, int depth, double probability)
+        private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double probability)
         {
             this.searchStatistics.NodeCount++;
 
@@ -97,7 +97,7 @@ namespace AI2048.AI.Searchers
             return maximizingNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth, probability));
         }
 
-        private double GetPositionEvaluation(MinimizingNode<double> minimizingNode, int depth, double probability)
+        private double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double probability)
         {
             this.searchStatistics.NodeCount++;
 

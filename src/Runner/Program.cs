@@ -12,42 +12,37 @@
     {
         private static void Main(string[] args)
         {
-            RunGameInBrowser();
+            //RunGameInBrowser();
 
-            //var gameOverStates = new List<LogarithmicGrid>();
+            var gameOverStates = new List<LogarithmicGrid>();
 
-            //var times = 1;
+            var times = 1;
 
-            //for (var i = 0; i < times; i++)
-            //{
-            //    var logGrid = RunGameInConsole();
+            for (var i = 0; i < times; i++)
+            {
+                var logGrid = RunGameInConsole();
 
-            //    gameOverStates.Add(logGrid);
-            //}
+                gameOverStates.Add(logGrid);
+            }
 
-            //foreach (var state in gameOverStates)
-            //{
-            //    Console.WriteLine(state);
-            //}
+            foreach (var state in gameOverStates)
+            {
+                Console.WriteLine(state);
+            }
         }
 
         private static LogarithmicGrid RunGameInConsole()
         {
             var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
 
-            //var logGrid = LogarithmicGrid.Parse(@"
-            //                                     2048   16    4    2
-            //                                      256   64   16    4
-            //                                      128    8    8    2
-            //                                       64    4    2    0");
-
-            var agent = new Agent();
+            var agent = new Agent(logGrid);
             try
             {
                 while (true)
                 {
-                    var move = agent.MakeDecision(logGrid);
+                    var move = agent.MakeDecision();
                     logGrid = logGrid.MakeMove(move).AddRandomTile();
+                    agent.UpdateGrid(logGrid);
                 }
             }
             catch (GameOverException)
@@ -62,13 +57,14 @@
         {
             using (var game = new GamePage())
             {
-                var agent = new Agent();
+                var agent = new Agent(game.GridState);
                 try
                 {
                     while (true)
                     {
-                        var move = agent.MakeDecision(game.GridState);
+                        var move = agent.MakeDecision();
                         game.Turn(move);
+                        agent.UpdateGrid(game.GridState);
                     }
                 }
                 catch (GameOverException)

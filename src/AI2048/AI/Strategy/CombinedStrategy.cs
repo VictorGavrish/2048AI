@@ -46,7 +46,7 @@ namespace AI2048.AI.Strategy
             var filteringSearchResults = this.moveFilteringSearcher.Search();
 
             var safeMoves = filteringSearchResults.MoveEvaluations
-                .Where(kvp => kvp.Value > ExhaustiveDeathAvoider<double>.DeathEvaluation)
+                .Where(kvp => kvp.Value > ExhaustiveDeathAvoider.DeathEvaluation)
                 .Select(kvp => kvp.Key)
                 .ToArray();
 

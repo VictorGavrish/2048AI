@@ -8,38 +8,38 @@
     using AI2048.AI.SearchTree;
     using AI2048.Game;
 
-    public class VictorHeuristic : IHeuristic<double>
+    public class VictorHeuristic : IHeuristic
     {
-        private static readonly long[,] HeatMap =
-        {
-            { 0, 0, 2, 5 },
-            { 0, 1, 3, 8 },
-            { 2, 3, 4, 16 },
-            { 5, 8, 16, 128 }
-        };
-
         ////private static readonly long[,] HeatMap =
         ////{
-        ////    { 0, 0, 1, 3 },
-        ////    { 0, 1, 2, 4 },
-        ////    { 2, 3, 4, 5 },
-        ////    { 6, 8, 16, 128 }
+        ////    { 0, 0, 2, 5 },
+        ////    { 0, 1, 3, 8 },
+        ////    { 2, 3, 4, 16 },
+        ////    { 5, 8, 16, 128 }
         ////};
 
+        private static readonly long[,] HeatMap =
+        {
+            { 0, 0, 1, 3 },
+            { 0, 1, 2, 4 },
+            { 2, 3, 4, 5 },
+            { 6, 8, 16, 128 }
+        };
         private static readonly long[][,] HeatMaps;
 
         static VictorHeuristic()
         {
-            var heatMaps = new List<long[,]> { HeatMap, /*Mirror(HeatMap)*/ };
+            var heatMaps = new List<long[,]> { HeatMap, Mirror(HeatMap) };
 
             var heatMap = HeatMap;
-            
+
             for (var i = 0; i < 3; i++)
             {
                 heatMap = RotateCw(heatMap);
 
                 heatMaps.Add(heatMap);
-                //heatMaps.Add(Mirror(heatMap));
+
+                heatMaps.Add(Mirror(heatMap));
             }
 
             HeatMaps = heatMaps.ToArray();
@@ -75,24 +75,24 @@
             return mirrored;
         }
 
-        public double Evaluate(MaximizingNode<double> node)
+        public double Evaluate(MaximizingNode node)
         {
-            return this.Evaluate((Node<double>)node);
+            return this.Evaluate((Node)node);
         }
 
-        public double Evaluate(MinimizingNode<double> node)
+        public double Evaluate(MinimizingNode node)
         {
-            return this.Evaluate((Node<double>)node);
+            return this.Evaluate((Node)node);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Evaluate(Node<double> node)
+        public double Evaluate(Node node)
         {
             var grid = node.Grid;
 
             var result = HeatMaps.Select(heatMap => EvaluateGrid(grid, heatMap)).Max();
 
-            result += node.EmptyCellCount;
+            result -= 1 << Math.Max(0, 5 - EvaluateEmptyCells(node.Grid));
 
             return result;
         }
@@ -111,6 +111,26 @@
             }
 
             return result;
+        }
+
+        private static int EvaluateEmptyCells(LogarithmicGrid grid)
+        {
+            var ajacentCount = 0;
+
+            for (var y = 0; y < 4; y++)
+            {
+                for (var x = 0; x < 3; x++)
+                {
+                    if (grid[x, y] != 0 && grid[x, y] == grid[x + 1, y])
+                    {
+                        ajacentCount++;
+                    }
+                }
+            }
+
+            var emptyCount = grid.Flatten().Count(b => b == 0);
+
+            return ajacentCount + emptyCount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

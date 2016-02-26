@@ -4,60 +4,39 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using AI2048.AI.Heristics;
     using AI2048.Game;
 
-    public class MaximizingNode<T> : Node<T> where T : IComparable<T>
+    public class MaximizingNode : Node
     {
-        // ReSharper disable once StaticMemberInGenericType
         private static readonly Move[] Moves = { Move.Up, Move.Left, Move.Down, Move.Right };
 
-        public MaximizingNode(LogarithmicGrid grid, MinimizingNode<T> parentNode, IHeuristic<T> heuristic)
-            : base(heuristic)
+        public MaximizingNode(LogarithmicGrid grid, SearchTree searchTree)
+            : base(searchTree)
         {
             this.Grid = grid;
-            this.parentNode = parentNode;
 
-            this.heuristicLazy = new Lazy<T>(() => this.Heuristic.Evaluate(this), false);
+            this.heuristicLazy = new Lazy<double>(() => this.SearchTree.Heuristic.Evaluate(this), false);
             this.possibleStatesLazy = new Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>>(this.GetPossibleStates, false);
-            this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode<T>>>(this.GetChildrenByMove, false);
+            this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode>>(this.GetChildrenByMove, false);
             this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
         }
 
-        public MaximizingNode(LogarithmicGrid grid, IHeuristic<T> heuristic)
-            : this(grid, null, heuristic)
+        private readonly Lazy<double> heuristicLazy;
+        public double HeuristicValue => this.heuristicLazy.Value;
+
+        public IDictionary<Move, MinimizingNode> Children => this.childrenByMoveLazy.Value;
+        private readonly Lazy<IDictionary<Move, MinimizingNode>> childrenByMoveLazy;
+        private IDictionary<Move, MinimizingNode> GetChildrenByMove()
         {
-            this.isRootNode = true;
-            this.knownPlayerNodes = new Dictionary<LogarithmicGrid, MaximizingNode<T>>();
-            this.knownComputerNodes = new Dictionary<LogarithmicGrid, MinimizingNode<T>>();
-        }
-
-        private readonly MinimizingNode<T> parentNode;
-        private readonly bool isRootNode;
-        public MaximizingNode<T> RootMaximizingNode => this.isRootNode ? this : this.parentNode.RootMaximizingNode;
-
-        private readonly IDictionary<LogarithmicGrid, MaximizingNode<T>> knownPlayerNodes;
-        public IDictionary<LogarithmicGrid, MaximizingNode<T>> KnownPlayerNodes => this.isRootNode ? this.knownPlayerNodes : this.parentNode.KnownPlayerNodes;
-
-        private readonly IDictionary<LogarithmicGrid, MinimizingNode<T>> knownComputerNodes;
-        public IDictionary<LogarithmicGrid, MinimizingNode<T>> KnownComputerNodes => this.isRootNode ? this.knownComputerNodes : this.parentNode.KnownComputerNodes;
-
-        private readonly Lazy<T> heuristicLazy;
-        public T HeuristicValue => this.heuristicLazy.Value;
-
-        public IDictionary<Move, MinimizingNode<T>> Children => this.childrenByMoveLazy.Value;
-        private readonly Lazy<IDictionary<Move, MinimizingNode<T>>> childrenByMoveLazy;
-        private IDictionary<Move, MinimizingNode<T>> GetChildrenByMove()
-        {
-            var dictionary = new Dictionary<Move, MinimizingNode<T>>();
+            var dictionary = new Dictionary<Move, MinimizingNode>();
 
             foreach (var kvp in this.PossibleStates)
             {
-                MinimizingNode<T> minimizingNode;
-                if (!this.KnownComputerNodes.TryGetValue(kvp.Value, out minimizingNode))
+                MinimizingNode minimizingNode;
+                if (!this.SearchTree.KnownComputerNodes.TryGetValue(kvp.Value, out minimizingNode))
                 {
-                    minimizingNode = new MinimizingNode<T>(kvp.Value, this, this.Heuristic);
-                    this.KnownComputerNodes.Add(kvp.Value, minimizingNode);
+                    minimizingNode = new MinimizingNode(kvp.Value, this.SearchTree);
+                    this.SearchTree.KnownComputerNodes.Add(kvp.Value, minimizingNode);
                 }
 
                 dictionary.Add(kvp.Key, minimizingNode);
