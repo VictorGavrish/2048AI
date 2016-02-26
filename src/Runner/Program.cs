@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing.Imaging;
+    using System.IO;
 
     using AI2048.AI;
     using AI2048.AI.Agent;
@@ -16,11 +17,13 @@
 
             var gameOverStates = new List<LogarithmicGrid>();
 
-            var times = 1;
+            var times = 10;
 
             for (var i = 0; i < times; i++)
             {
                 var logGrid = RunGameInConsole();
+
+                File.AppendAllText("results.txt", logGrid.ToString());
 
                 gameOverStates.Add(logGrid);
             }

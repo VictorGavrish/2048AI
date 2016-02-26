@@ -9,11 +9,11 @@ namespace AI2048.AI.Searchers
 
     using NodaTime;
     
-    public class ExpectoMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
+    public class ExpectiMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
     {
         private static readonly double MinEvaluation = -1000000000;
 
-        private readonly MaximizingNode rootNode;
+        private readonly PlayerNode rootNode;
 
         private readonly SearchStatistics searchStatistics;
 
@@ -21,7 +21,7 @@ namespace AI2048.AI.Searchers
 
         private int searchDepth;
 
-        public ExpectoMaxer(MaximizingNode rootNode, int minSearchDepth = 3)
+        public ExpectiMaxer(PlayerNode rootNode, int minSearchDepth = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
@@ -49,7 +49,7 @@ namespace AI2048.AI.Searchers
                 RootGrid = this.rootNode.Grid,
                 BestMove = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First(),
                 BestMoveEvaluation = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Value).First(),
-                SearcherName = nameof(ExpectoMaxer),
+                SearcherName = nameof(ExpectiMaxer),
                 MoveEvaluations = evaluationResult,
                 SearchStatistics = this.searchStatistics
             };
@@ -76,11 +76,11 @@ namespace AI2048.AI.Searchers
                     child => this.GetPositionEvaluation(child.Value, this.searchDepth));
         }
 
-        private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth)
+        private double GetPositionEvaluation(PlayerNode playerNode, int depth)
         {
             this.searchStatistics.NodeCount++;
 
-            if (maximizingNode.GameOver)
+            if (playerNode.GameOver)
             {
                 this.searchStatistics.TerminalNodeCount++;
                 return MinEvaluation + this.searchDepth - depth;
@@ -89,18 +89,18 @@ namespace AI2048.AI.Searchers
             if (depth == 0)
             {
                 this.searchStatistics.TerminalNodeCount++;
-                return maximizingNode.HeuristicValue;
+                return playerNode.HeuristicValue;
             }
 
-            return maximizingNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth));
+            return playerNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth));
         }
 
-        private double GetPositionEvaluation(MinimizingNode minimizingNode, int depth)
+        private double GetPositionEvaluation(ComputerNode computerNode, int depth)
         {
             this.searchStatistics.NodeCount++;
 
-            var resultWith2 = minimizingNode.ChildrenWith2.Average(child => this.GetPositionEvaluation(child, depth - 1));
-            var resultWith4 = minimizingNode.ChildrenWith4.Average(child => this.GetPositionEvaluation(child, depth - 1));
+            var resultWith2 = computerNode.ChildrenWith2.Average(child => this.GetPositionEvaluation(child, depth - 1));
+            var resultWith4 = computerNode.ChildrenWith4.Average(child => this.GetPositionEvaluation(child, depth - 1));
 
             var result = resultWith2 * 0.9 + resultWith4 * 0.1;
             

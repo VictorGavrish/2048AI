@@ -6,8 +6,8 @@
 
     public interface IHeuristic
     {
-        double Evaluate(MaximizingNode node);
+        double Evaluate(PlayerNode node);
 
-        double Evaluate(MinimizingNode node);
+        double Evaluate(ComputerNode node);
     }
 }

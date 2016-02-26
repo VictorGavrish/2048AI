@@ -75,12 +75,12 @@
             return mirrored;
         }
 
-        public double Evaluate(MaximizingNode node)
+        public double Evaluate(PlayerNode node)
         {
             return this.Evaluate((Node)node);
         }
 
-        public double Evaluate(MinimizingNode node)
+        public double Evaluate(ComputerNode node)
         {
             return this.Evaluate((Node)node);
         }
@@ -92,7 +92,7 @@
 
             var result = HeatMaps.Select(heatMap => EvaluateGrid(grid, heatMap)).Max();
 
-            result -= 1 << Math.Max(0, 5 - EvaluateEmptyCells(node.Grid));
+            result -= 1 << Math.Max(0, 6 - EvaluateEmptyCells(node.Grid));
 
             return result;
         }
@@ -113,6 +113,7 @@
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int EvaluateEmptyCells(LogarithmicGrid grid)
         {
             var ajacentCount = 0;
@@ -124,6 +125,19 @@
                     if (grid[x, y] != 0 && grid[x, y] == grid[x + 1, y])
                     {
                         ajacentCount++;
+                        x++;
+                    }
+                }
+            }
+
+            for (var x = 0; x < 4; x++)
+            {
+                for (var y = 0; y < 3; y++)
+                {
+                    if (grid[x, y] != 0 && grid[x, y] == grid[x, y + 1])
+                    {
+                        ajacentCount++;
+                        y++;
                     }
                 }
             }

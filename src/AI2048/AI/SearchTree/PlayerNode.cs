@@ -6,43 +6,49 @@
 
     using AI2048.Game;
 
-    public class MaximizingNode : Node
+    public class PlayerNode : Node
     {
         private static readonly Move[] Moves = { Move.Up, Move.Left, Move.Down, Move.Right };
 
-        public MaximizingNode(LogarithmicGrid grid, SearchTree searchTree)
+        public PlayerNode(LogarithmicGrid grid, SearchTree searchTree)
             : base(searchTree)
         {
             this.Grid = grid;
 
             this.heuristicLazy = new Lazy<double>(() => this.SearchTree.Heuristic.Evaluate(this), false);
             this.possibleStatesLazy = new Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>>(this.GetPossibleStates, false);
-            this.childrenByMoveLazy = new Lazy<IDictionary<Move, MinimizingNode>>(this.GetChildrenByMove, false);
             this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
         }
 
         private readonly Lazy<double> heuristicLazy;
         public double HeuristicValue => this.heuristicLazy.Value;
 
-        public IDictionary<Move, MinimizingNode> Children => this.childrenByMoveLazy.Value;
-        private readonly Lazy<IDictionary<Move, MinimizingNode>> childrenByMoveLazy;
-        private IDictionary<Move, MinimizingNode> GetChildrenByMove()
+        private readonly IDictionary<Move, ComputerNode> cachedChildren = new Dictionary<Move, ComputerNode>();
+        private bool finishedComputing;
+
+        public IDictionary<Move, ComputerNode> Children => this.GetChildrenByMove();
+        private IDictionary<Move, ComputerNode> GetChildrenByMove()
         {
-            var dictionary = new Dictionary<Move, MinimizingNode>();
+            if (this.finishedComputing)
+            {
+                return this.cachedChildren;
+            }
 
             foreach (var kvp in this.PossibleStates)
             {
-                MinimizingNode minimizingNode;
-                if (!this.SearchTree.KnownComputerNodes.TryGetValue(kvp.Value, out minimizingNode))
+                ComputerNode computerNode;
+                if (!this.SearchTree.KnownComputerNodes.TryGetValue(kvp.Value, out computerNode))
                 {
-                    minimizingNode = new MinimizingNode(kvp.Value, this.SearchTree);
-                    this.SearchTree.KnownComputerNodes.Add(kvp.Value, minimizingNode);
+                    computerNode = new ComputerNode(kvp.Value, this.SearchTree);
+                    this.SearchTree.KnownComputerNodes.Add(kvp.Value, computerNode);
                 }
 
-                dictionary.Add(kvp.Key, minimizingNode);
+                this.cachedChildren.Add(kvp.Key, computerNode);
             }
 
-            return dictionary;
+            this.finishedComputing = true;
+
+            return this.cachedChildren;
         }
 
         public IEnumerable<KeyValuePair<Move, LogarithmicGrid>> PossibleStates => this.possibleStatesLazy.Value;
@@ -54,5 +60,15 @@
         public bool GameOver => this.gameOverLazy.Value;
         private readonly Lazy<bool> gameOverLazy;
         private bool GetGameOver() => !this.PossibleStates.Any();
+
+        public IEnumerable<ComputerNode> GetCachedComputerNodes()
+        {
+            return this.cachedChildren.Values.SelectMany(cn => cn.GetCachedComputerNodes());
+        }
+
+        public IEnumerable<PlayerNode> GetCachedPlayerNodes()
+        {
+            return new[] { this }.Concat(this.cachedChildren.Values.SelectMany(cn => cn.GetCachedPlayerNodes()));
+        }
     }
 }

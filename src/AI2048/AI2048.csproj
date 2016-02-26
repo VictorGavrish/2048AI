@@ -93,12 +93,12 @@
     <Compile Include="AI\Searchers\DynamicDepthSearcherWrapper.cs" />
     <Compile Include="AI\Searchers\IConfigurableDepthSearcher.cs" />
     <Compile Include="AI\Searchers\IConfigurableMovesSearcher.cs" />
-    <Compile Include="AI\Searchers\ProbabilityLimitedExpectoMaxer.cs" />
+    <Compile Include="AI\Searchers\ProbabilityLimitedExpectiMaxer.cs" />
     <Compile Include="AI\Searchers\ResultAnalyzers\ISearchResultAnalyzer.cs" />
     <Compile Include="AI\Searchers\ResultAnalyzers\MinDurationSearchResultAnalyzer.cs" />
     <Compile Include="AI\Searchers\Models\AlphaBetaSearchStatistics.cs" />
     <Compile Include="AI\Searchers\ExhaustiveDeathAvoider.cs" />
-    <Compile Include="AI\Searchers\ExpectoMaxer.cs" />
+    <Compile Include="AI\Searchers\ExpectiMaxer.cs" />
     <Compile Include="AI\Searchers\ISearcher.cs" />
     <Compile Include="AI\Searchers\Models\SearchResult.cs" />
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />
@@ -108,8 +108,8 @@
     <Compile Include="AI\Heristics\OvolveHeuristic.cs" />
     <Compile Include="AI\Strategy\CombinedStrategy.cs" />
     <Compile Include="AI\Heristics\IHeuristic.cs" />
-    <Compile Include="AI\SearchTree\MinimizingNode.cs" />
-    <Compile Include="AI\SearchTree\MaximizingNode.cs" />
+    <Compile Include="AI\SearchTree\ComputerNode.cs" />
+    <Compile Include="AI\SearchTree\PlayerNode.cs" />
     <Compile Include="AI\SearchTree\Node.cs" />
     <Compile Include="AI\Agent\Agent.cs" />
     <Compile Include="AI\Heristics\VictorHeuristic.cs" />

@@ -12,7 +12,7 @@ namespace AI2048.AI.Searchers
     {
         public const double DeathEvaluation = -1000000000;
 
-        private readonly MaximizingNode rootNode;
+        private readonly PlayerNode rootNode;
 
         private readonly int safeFreeCellsCount;
 
@@ -20,7 +20,7 @@ namespace AI2048.AI.Searchers
 
         private readonly SearchStatistics searchStatistics;
 
-        public ExhaustiveDeathAvoider(MaximizingNode rootNode, int searchDepth = 7, int safeFreeCellsCount = 3)
+        public ExhaustiveDeathAvoider(PlayerNode rootNode, int searchDepth = 7, int safeFreeCellsCount = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = searchDepth;
@@ -54,31 +54,31 @@ namespace AI2048.AI.Searchers
             };
         }
 
-        private bool GetRiskOfDeath(MaximizingNode maximizingNode, int depth)
+        private bool GetRiskOfDeath(PlayerNode playerNode, int depth)
         {
             this.searchStatistics.NodeCount++;
 
-            if (maximizingNode.GameOver)
+            if (playerNode.GameOver)
             {
                 this.searchStatistics.TerminalNodeCount++;
                 return true;
             }
 
-            if (depth == 0 || maximizingNode.EmptyCellCount >= this.safeFreeCellsCount
-                || maximizingNode.EmptyCellCount >= depth)
+            if (depth == 0 || playerNode.EmptyCellCount >= this.safeFreeCellsCount
+                || playerNode.EmptyCellCount >= depth)
             {
                 this.searchStatistics.TerminalNodeCount++;
                 return false;
             }
 
-            return maximizingNode.Children.Values.All(child => this.GetRiskOfDeath(child, depth));
+            return playerNode.Children.Values.All(child => this.GetRiskOfDeath(child, depth));
         }
 
-        private bool GetRiskOfDeath(MinimizingNode minimizingNode, int depth)
+        private bool GetRiskOfDeath(ComputerNode computerNode, int depth)
         {
             this.searchStatistics.NodeCount++;
 
-            return minimizingNode.Children.Any(child => this.GetRiskOfDeath(child, depth - 1));
+            return computerNode.Children.Any(child => this.GetRiskOfDeath(child, depth - 1));
         }
     }
 }

@@ -15,7 +15,7 @@
                         2    4    2    4
                     ";
 
-        private readonly MaximizingNode rootNode; 
+        private readonly PlayerNode rootNode; 
 
         private const int SearchDepth = 4;
 
@@ -23,7 +23,7 @@
         {
             var rootGrid = LogarithmicGrid.Parse(this.startgingNode);
 
-            this.rootNode = new MaximizingNode(rootGrid, null);
+            this.rootNode = new PlayerNode(rootGrid, null);
         }
 
         [Benchmark]
@@ -35,7 +35,7 @@
             }
         }
 
-        private void Visit(MinimizingNode node, int searchDepth)
+        private void Visit(ComputerNode node, int searchDepth)
         {
             foreach (var child in node.Children)
             {
@@ -43,7 +43,7 @@
             }
         }
 
-        private void Visit(MaximizingNode node, int searchDepth)
+        private void Visit(PlayerNode node, int searchDepth)
         {
             if (searchDepth == 0)
             {

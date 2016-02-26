@@ -16,7 +16,7 @@ namespace AI2048.AI.Searchers
 
         private const double MaxEvaluation = 1000000000000;
         
-        private readonly MaximizingNode rootNode;
+        private readonly PlayerNode rootNode;
 
         private AlphaBetaSearchStatistics searchStatistics;
 
@@ -24,7 +24,7 @@ namespace AI2048.AI.Searchers
 
         private int searchDepth;
 
-        public AlphaBetaMiniMaxer(MaximizingNode rootNode, int minSearchDepth = 3)
+        public AlphaBetaMiniMaxer(PlayerNode rootNode, int minSearchDepth = 3)
         {
             this.rootNode = rootNode;
             this.searchDepth = minSearchDepth;
@@ -85,11 +85,11 @@ namespace AI2048.AI.Searchers
             return result;
         }
 
-        private double GetPositionEvaluation(MaximizingNode maximizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(PlayerNode playerNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodeCount++;
 
-            if (maximizingNode.GameOver)
+            if (playerNode.GameOver)
             {
                 this.searchStatistics.TerminalNodeCount++;
                 return MinEvaluation + this.searchDepth - depth;
@@ -98,10 +98,10 @@ namespace AI2048.AI.Searchers
             if (depth == 0)
             {
                 this.searchStatistics.TerminalNodeCount++;
-                return maximizingNode.HeuristicValue;
+                return playerNode.HeuristicValue;
             }
 
-            IEnumerable<MinimizingNode> children = maximizingNode.Children.Values;
+            IEnumerable<ComputerNode> children = playerNode.Children.Values;
             if (depth > 1)
             {
                 children = children.OrderByDescending(c => c.HeuristicValue);
@@ -123,11 +123,11 @@ namespace AI2048.AI.Searchers
             return max;
         }
 
-        private double GetPositionEvaluation(MinimizingNode minimizingNode, int depth, double alpha, double beta)
+        private double GetPositionEvaluation(ComputerNode computerNode, int depth, double alpha, double beta)
         {
             this.searchStatistics.NodeCount++;
 
-            var children = minimizingNode.Children;
+            var children = computerNode.Children;
             if (depth > 1)
             {
                 children = children.OrderBy(c => c.HeuristicValue);

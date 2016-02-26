@@ -26,7 +26,7 @@ namespace AI2048.AI.Agent
                 throw new GameOverException();
             }
 
-            var probabilityLimitedExpectoMaxer = new ProbabilityLimitedExpectoMaxer(this.searchTree.RootNode);
+            var probabilityLimitedExpectoMaxer = new ProbabilityLimitedExpectiMaxer(this.searchTree.RootNode);
 
             var strategy = new SimpleStrategy(probabilityLimitedExpectoMaxer);
 

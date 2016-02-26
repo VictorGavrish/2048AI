@@ -10,25 +10,53 @@ namespace AI2048.AI.Heristics
 
     public class OvolveHeuristic : IHeuristic
     {
-        public double Evaluate(MaximizingNode node)
+        public double Evaluate(PlayerNode node)
         {
-            var result = GetMonotonicity(node) 
-                         + GetMaxValueEvalution(node) 
-                         + GetEmptyCellEvalution(node) * 2.7
-                         + GetSmoothness(node) * 0.1;
+            var result = GetMonotonicity(node) + GetEmptyCellEvalution(node.Grid);
 
             return result;
         }
 
-        public double Evaluate(MinimizingNode node)
+        public double Evaluate(ComputerNode node)
         {
-            var result = GetMonotonicity(node) + GetEmptyCellEvalution(node);
+            var result = GetMonotonicity(node) + GetEmptyCellEvalution(node.Grid);
 
             return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double GetEmptyCellEvalution(Node node) => Math.Log(node.EmptyCellCount);
+        private static int GetEmptyCellEvalution(LogarithmicGrid grid)
+        {
+            var ajacentCount = 0;
+
+            for (var y = 0; y < 4; y++)
+            {
+                for (var x = 0; x < 3; x++)
+                {
+                    if (grid[x, y] != 0 && grid[x, y] == grid[x + 1, y])
+                    {
+                        ajacentCount++;
+                        x++;
+                    }
+                }
+            }
+
+            for (var x = 0; x < 4; x++)
+            {
+                for (var y = 0; y < 3; y++)
+                {
+                    if (grid[x, y] != 0 && grid[x, y] == grid[x, y + 1])
+                    {
+                        ajacentCount++;
+                        y++;
+                    }
+                }
+            }
+
+            var emptyCount = grid.Flatten().Count(b => b == 0);
+
+            return ajacentCount + emptyCount;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte GetMaxValueEvalution(Node node) => node.Grid.Flatten().Max();
