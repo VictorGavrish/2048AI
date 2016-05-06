@@ -9,7 +9,7 @@ namespace AI2048.AI.Searchers
 
     using NodaTime;
     
-    public class ExpectiMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
+    public class ExpectiMaxer : ISearcher
     {
         private static readonly double MinEvaluation = -1000000000;
 
@@ -17,9 +17,7 @@ namespace AI2048.AI.Searchers
 
         private readonly SearchStatistics searchStatistics;
 
-        private IEnumerable<Move> allowedMoves;
-
-        private int searchDepth;
+        private readonly int searchDepth;
 
         public ExpectiMaxer(PlayerNode rootNode, int minSearchDepth = 3)
         {
@@ -57,20 +55,9 @@ namespace AI2048.AI.Searchers
             return result;
         }
 
-        public void SetDepth(int depth)
-        {
-            this.searchDepth = depth;
-        }
-
-        public void SetAvailableMoves(IEnumerable<Move> moves)
-        {
-            this.allowedMoves = moves;
-        }
-
         private IDictionary<Move, double> InitializeEvaluation()
         {
             return this.rootNode.Children
-                .Where(kvp => this.allowedMoves?.Contains(kvp.Key) ?? true)
                 .ToDictionary(
                     child => child.Key,
                     child => this.GetPositionEvaluation(child.Value, this.searchDepth));

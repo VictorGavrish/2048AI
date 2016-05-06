@@ -10,7 +10,7 @@ namespace AI2048.AI.Searchers
 
     using NodaTime;
 
-    public class AlphaBetaMiniMaxer : IConfigurableDepthSearcher, IConfigurableMovesSearcher
+    public class AlphaBetaMiniMaxer : ISearcher
     {
         private const double MinEvaluation = -1000000000000;
 
@@ -51,16 +51,6 @@ namespace AI2048.AI.Searchers
                 MoveEvaluations = evaluationResult, 
                 SearchStatistics = this.searchStatistics
             };
-        }
-
-        public void SetDepth(int depth)
-        {
-            this.searchDepth = depth;
-        }
-
-        public void SetAvailableMoves(IEnumerable<Move> moves)
-        {
-            this.allowedMoves = moves;
         }
 
         private IDictionary<Move, double> InitializeEvaluation()
