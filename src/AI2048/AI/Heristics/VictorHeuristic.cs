@@ -10,39 +10,31 @@
 
     public class VictorHeuristic : IHeuristic
     {
-        ////private static readonly long[,] HeatMap =
-        ////{
-        ////    { 0, 0, 2, 5 },
-        ////    { 0, 1, 3, 8 },
-        ////    { 2, 3, 4, 16 },
-        ////    { 5, 8, 16, 128 }
-        ////};
-
-        private static readonly long[,] HeatMap =
+        private readonly long[,] heatMap =
         {
             { 0, 0, 1, 3 },
             { 0, 1, 2, 4 },
-            { 2, 3, 4, 5 },
-            { 6, 8, 16, 128 }
+            { 2, 3, 4, 6 },
+            { 5, 8, 16, 128 }
         };
-        private static readonly long[][,] HeatMaps;
+        private readonly long[][,] heatMaps;
 
-        static VictorHeuristic()
+        public VictorHeuristic()
         {
-            var heatMaps = new List<long[,]> { HeatMap, Mirror(HeatMap) };
+            var maps = new List<long[,]> { this.heatMap, Mirror(this.heatMap) };
 
-            var heatMap = HeatMap;
+            var map = this.heatMap;
 
             for (var i = 0; i < 3; i++)
             {
-                heatMap = RotateCw(heatMap);
+                map = RotateCw(map);
 
-                heatMaps.Add(heatMap);
+                maps.Add(map);
 
-                heatMaps.Add(Mirror(heatMap));
+                maps.Add(Mirror(map));
             }
 
-            HeatMaps = heatMaps.ToArray();
+            this.heatMaps = maps.ToArray();
         }
 
         private static long[,] RotateCw(long[,] matrix)
@@ -90,7 +82,7 @@
         {
             var grid = node.Grid;
 
-            var result = HeatMaps.Select(heatMap => EvaluateGrid(grid, heatMap)).Max();
+            var result = this.heatMaps.Select(heatMap => EvaluateGrid(grid, heatMap)).Max();
 
             result -= 1 << Math.Max(0, 6 - EvaluateEmptyCells(node.Grid));
 

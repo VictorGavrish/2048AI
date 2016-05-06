@@ -208,8 +208,6 @@
 
         public bool Equals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
 
-        public bool UnsafeEquals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
-
         public override unsafe int GetHashCode()
         {
             fixed (byte* buffer = this.grid)

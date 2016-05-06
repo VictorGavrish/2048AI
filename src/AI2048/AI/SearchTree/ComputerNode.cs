@@ -17,11 +17,16 @@
         private readonly Lazy<double> heuristicLazy;
         public double HeuristicValue => this.heuristicLazy.Value;
 
-        private readonly List<PlayerNode> computedNodesWith2 = new List<PlayerNode>();
+        private List<PlayerNode> computedNodesWith2;
         private bool allNodesWith2Computed;
         public IEnumerable<PlayerNode> ChildrenWith2 => this.GetChildrenWith2();
         private IEnumerable<PlayerNode> GetChildrenWith2()
         {
+            if (this.computedNodesWith2 == null)
+            {
+                this.computedNodesWith2 = new List<PlayerNode>();
+            }
+
             foreach (var node in this.computedNodesWith2)
             {
                 yield return node;
@@ -53,11 +58,16 @@
             this.allNodesWith2Computed = true;
         }
 
-        private readonly List<PlayerNode> computedNodesWith4 = new List<PlayerNode>();
+        private List<PlayerNode> computedNodesWith4;
         private bool allNodesWith4Computed;
         public IEnumerable<PlayerNode> ChildrenWith4 => this.GetChildrenWith4();
         private IEnumerable<PlayerNode> GetChildrenWith4()
         {
+            if (this.computedNodesWith4 == null)
+            {
+                this.computedNodesWith4 = new List<PlayerNode>();
+            }
+
             foreach (var node in this.computedNodesWith4)
             {
                 yield return node;

@@ -27,7 +27,7 @@ namespace AI2048.AI.Searchers
 
         private readonly int maxSearchDepth;
 
-        public ProbabilityLimitedExpectiMaxer(PlayerNode rootNode, double minProbability = 0.01, int maxSearchDepth = 6)
+        public ProbabilityLimitedExpectiMaxer(PlayerNode rootNode, double minProbability = 0.005, int maxSearchDepth = 7)
         {
             this.rootNode = rootNode;
             this.minProbability = minProbability;
