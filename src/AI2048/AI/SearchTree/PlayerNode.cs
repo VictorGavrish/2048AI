@@ -10,11 +10,9 @@
     {
         private static readonly Move[] Moves = { Move.Up, Move.Left, Move.Down, Move.Right };
 
-        public PlayerNode(LogarithmicGrid grid, SearchTree searchTree)
-            : base(searchTree)
+        public PlayerNode(LogarithmicGrid grid, SearchTree searchTree, int sum)
+            : base(grid, searchTree, sum)
         {
-            this.Grid = grid;
-
             this.heuristicLazy = new Lazy<double>(() => this.SearchTree.Heuristic.Evaluate(this), false);
             this.possibleStatesLazy = new Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>>(this.GetPossibleStates, false);
             this.gameOverLazy = new Lazy<bool>(this.GetGameOver, false);
@@ -34,13 +32,21 @@
                 return this.cachedChildren;
             }
 
+            IDictionary<LogarithmicGrid, ComputerNode> knownComputerNodesWithSameSum;
+            if (!this.SearchTree.KnownComputerNodesBySum.TryGetValue(this.Sum, out knownComputerNodesWithSameSum))
+            {
+                knownComputerNodesWithSameSum = new Dictionary<LogarithmicGrid, ComputerNode>();
+                this.SearchTree.KnownComputerNodesBySum.Add(this.Sum, knownComputerNodesWithSameSum);
+            }
+
             foreach (var kvp in this.PossibleStates)
             {
                 ComputerNode computerNode;
-                if (!this.SearchTree.KnownComputerNodes.TryGetValue(kvp.Value, out computerNode))
+
+                if (!knownComputerNodesWithSameSum.TryGetValue(kvp.Value, out computerNode))
                 {
-                    computerNode = new ComputerNode(kvp.Value, this.SearchTree);
-                    this.SearchTree.KnownComputerNodes.Add(kvp.Value, computerNode);
+                    computerNode = new ComputerNode(kvp.Value, this.SearchTree, this.Sum);
+                    knownComputerNodesWithSameSum.Add(kvp.Value, computerNode);
                 }
 
                 this.cachedChildren.Add(kvp.Key, computerNode);
@@ -60,15 +66,5 @@
         public bool GameOver => this.gameOverLazy.Value;
         private readonly Lazy<bool> gameOverLazy;
         private bool GetGameOver() => !this.PossibleStates.Any();
-
-        public IEnumerable<ComputerNode> GetCachedComputerNodes()
-        {
-            return this.cachedChildren.Values.SelectMany(cn => cn.GetCachedComputerNodes());
-        }
-
-        public IEnumerable<PlayerNode> GetCachedPlayerNodes()
-        {
-            return new[] { this }.Concat(this.cachedChildren.Values.SelectMany(cn => cn.GetCachedPlayerNodes()));
-        }
     }
 }

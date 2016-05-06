@@ -41,8 +41,8 @@ namespace AI2048.AI.Searchers
             this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.searchDepth);
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
             this.searchStatistics.SearchDepth = this.searchDepth;
-            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodes.Count;
-            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodes.Count;
+            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodesBySum.Sum(kvp => kvp.Value.Count);
+            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodesBySum.Sum(kvp => kvp.Value.Count);
 
             var result = new SearchResult
             {

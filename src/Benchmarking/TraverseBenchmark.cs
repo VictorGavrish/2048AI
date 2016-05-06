@@ -8,28 +8,28 @@
     [Config(typeof(Config))]
     public class TraverseBenchmark
     {
-        private readonly string startgingNode = @"
+        private const string StartgingNode = @"
                      1024  256   64    0
                        64   32    8    2
                         4   16   16    8
                         2    4    2    4
                     ";
 
-        private readonly PlayerNode rootNode; 
+        private readonly SearchTree searchTree; 
 
-        private const int SearchDepth = 4;
+        private const int SearchDepth = 5;
 
         public TraverseBenchmark()
         {
-            var rootGrid = LogarithmicGrid.Parse(this.startgingNode);
+            var rootGrid = LogarithmicGrid.Parse(StartgingNode);
 
-            this.rootNode = new PlayerNode(rootGrid, null);
+            this.searchTree = new SearchTree(null, rootGrid);
         }
 
         [Benchmark]
         public void Traverse()
         {
-            foreach (var child in this.rootNode.Children.Values)
+            foreach (var child in this.searchTree.RootNode.Children.Values)
             {
                 this.Visit(child, SearchDepth);
             }

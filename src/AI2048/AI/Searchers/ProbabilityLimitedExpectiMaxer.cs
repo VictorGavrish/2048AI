@@ -27,7 +27,7 @@ namespace AI2048.AI.Searchers
 
         private readonly int maxSearchDepth;
 
-        public ProbabilityLimitedExpectiMaxer(PlayerNode rootNode, double minProbability = 0.01, int maxSearchDepth = 8)
+        public ProbabilityLimitedExpectiMaxer(PlayerNode rootNode, double minProbability = 0.01, int maxSearchDepth = 6)
         {
             this.rootNode = rootNode;
             this.minProbability = minProbability;
@@ -42,18 +42,16 @@ namespace AI2048.AI.Searchers
         public SearchResult Search()
         {
             var startTime = SystemClock.Instance.Now;
-            var knownPlayerNodesStart = this.rootNode.SearchTree.KnownPlayerNodes.Count;
-            var knownComputerNodesStart = this.rootNode.SearchTree.KnownComputerNodes.Count;
+            var knownPlayerNodesStart = this.rootNode.SearchTree.KnownPlayerNodesBySum.Sum(kvp => kvp.Value.Count);
+            var knownComputerNodesStart = this.rootNode.SearchTree.KnownComputerNodesBySum.Sum(kvp => kvp.Value.Count);
 
             var evaluationResult = this.InitializeEvaluation();
 
             this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.maxSearchDepth);
             this.searchStatistics.SearchDepth = this.maxSearchDepth;
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
-            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodes.Count
-                                                     - knownPlayerNodesStart;
-            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodes.Count
-                                                       - knownComputerNodesStart;
+            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodesBySum.Sum(kvp => kvp.Value.Count) - knownPlayerNodesStart;
+            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodesBySum.Sum(kvp => kvp.Value.Count) - knownComputerNodesStart;
 
             var result = new SearchResult
             {

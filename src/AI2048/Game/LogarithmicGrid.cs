@@ -4,10 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
     using System.Text;
-
-    using AI2048.AI.SearchTree;
 
     public class LogarithmicGrid : IEquatable<LogarithmicGrid>
     {
@@ -22,7 +19,19 @@
 
         public LogarithmicGrid(int[,] grid)
         {
-            this.grid = ToByteInLogSpace(grid);
+            var result = new byte[4, 4];
+
+            for (var y = 0; y < 4; y++)
+            {
+                for (var x = 0; x < 4; x++)
+                {
+                    var current = grid[x, y];
+
+                    result[x, y] = current == 0 ? (byte)0 : (byte)Math.Log(current, 2);
+                }
+            }
+
+            this.grid = result;
         }
 
         public byte this[int x, int y] => this.grid[x, y];
@@ -34,12 +43,27 @@
             return result;
         }
 
+        public int Sum()
+        {
+            var sum = 0;
+            for (var y = 0; y < 4; y++)
+            {
+                for (var x = 0; x < 4; x++)
+                {
+                    var value = this.grid[x, y];
+                    sum += value == 0 ? 0 : 2 << (value - 1);
+                }
+            }
+
+            return sum;
+        }
+
         public LogarithmicGrid AddRandomTile()
         {
             var flat = this.Flatten();
 
             var emptyCells = flat.Count(c => c == 0);
-            
+
             var value = Random.NextDouble() < 0.9 ? (byte)1 : (byte)2;
             var position = Random.Next(emptyCells);
 
@@ -82,7 +106,7 @@
             }
         }
 
-        public IEnumerable<LogarithmicGrid> NextPossibleWorldStatesWith2()
+        public IEnumerable<LogarithmicGrid> NextPossibleStatesWith2()
         {
             for (var x = 0; x < 4; x++)
             {
@@ -100,7 +124,7 @@
             }
         }
 
-        public IEnumerable<LogarithmicGrid> NextPossibleWorldStatesWith4()
+        public IEnumerable<LogarithmicGrid> NextPossibleStatesWith4()
         {
             for (var x = 0; x < 4; x++)
             {
@@ -118,7 +142,7 @@
             }
         }
 
-        public IEnumerable<LogarithmicGrid> NextPossibleWorldStates()
+        public IEnumerable<LogarithmicGrid> NextPossibleStates()
         {
             for (var x = 0; x < 4; x++)
             {
@@ -165,17 +189,17 @@
             var grid = new int[4, 4];
 
             var values =
-                stringGrid.Split(new[] { '\n', '\r', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(v => v.Trim())
-                    .Select(int.Parse)
-                    .ToArray();
+                stringGrid.Split(new[] {'\n', '\r', '\t', ' '}, StringSplitOptions.RemoveEmptyEntries)
+                          .Select(v => v.Trim())
+                          .Select(int.Parse)
+                          .ToArray();
 
             if (values.Length != 16)
             {
                 throw new ArgumentException(nameof(stringGrid));
             }
 
-            Buffer.BlockCopy(values, 0, grid, 0, 16 * sizeof(int));
+            Buffer.BlockCopy(values, 0, grid, 0, 16*sizeof(int));
 
             return new LogarithmicGrid(grid);
         }
@@ -183,12 +207,6 @@
         public override bool Equals(object obj) => UnsafeCompare(this.grid, ((LogarithmicGrid)obj).grid);
 
         public bool Equals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
-
-        public bool MemcmpEquals(LogarithmicGrid other) => MemcmpCompare(this.grid, other.grid);
-
-        public bool HardcodedEquals(LogarithmicGrid other) => HardcodedCompare(this.grid, other.grid);
-
-        public bool NaiveEquals(LogarithmicGrid other) => NaiveCompare(this.grid, other.grid);
 
         public bool UnsafeEquals(LogarithmicGrid other) => UnsafeCompare(this.grid, other.grid);
 
@@ -198,45 +216,8 @@
             {
                 long* x = (long*)buffer, y = (long*)(buffer + 8);
 
-                return (*x).GetHashCode() * 31 + (*y).GetHashCode() * 23;
+                return (*x).GetHashCode()*31 + (*y).GetHashCode()*23;
             }
-        }
-
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int memcmp(byte[,] first, byte[,] second, int count);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MemcmpCompare(byte[,] first, byte[,] second)
-        {
-            return memcmp(first, second, first.Length) == 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool HardcodedCompare(byte[,] first, byte[,] second)
-        {
-            return first[0, 0] == second[0, 0] && first[0, 1] == second[0, 1] && first[0, 2] == second[0, 2]
-                   && first[0, 3] == second[0, 3] && first[1, 0] == second[1, 0] && first[1, 1] == second[1, 1]
-                   && first[1, 2] == second[1, 2] && first[1, 3] == second[1, 3] && first[2, 0] == second[2, 0]
-                   && first[2, 1] == second[2, 1] && first[2, 2] == second[2, 2] && first[2, 3] == second[2, 3]
-                   && first[3, 0] == second[3, 0] && first[3, 1] == second[3, 1] && first[3, 2] == second[3, 2]
-                   && first[3, 3] == second[3, 3];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool NaiveCompare(byte[,] first, byte[,] second)
-        {
-            for (int y = 0; y < 4; y++)
-            {
-                for (int x = 0; x < 4; x++)
-                {
-                    if (first[x, y] != second[x, y])
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -250,107 +231,26 @@
             }
         }
 
-        private static byte[,] ToByteInLogSpace(int[,] matrix)
-        {
-            var result = new byte[4, 4];
-
-            for (var y = 0; y < 4; y++)
-            {
-                for (var x = 0; x < 4; x++)
-                {
-                    var current = matrix[x, y];
-
-                    result[x, y] = current == 0 ? (byte)0 : (byte)Math.Log(current, 2);
-                }
-            }
-
-            return result;
-        }
-
         private byte[,] CloneMatrix()
         {
             var result = new byte[4, 4];
-            
+
             Buffer.BlockCopy(this.grid, 0, result, 0, 16);
 
             return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LogarithmicGrid MoveDown() => new LogarithmicGrid(this.MoveVertically(true));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LogarithmicGrid MoveLeft() => new LogarithmicGrid(this.MoveHorizontally(false));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LogarithmicGrid MoveRight() => new LogarithmicGrid(this.MoveHorizontally(true));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LogarithmicGrid MoveUp() => new LogarithmicGrid(this.MoveVertically(false));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private byte[,] MoveHorizontally(bool left)
+        private LogarithmicGrid MoveDown()
         {
             var result = new byte[4, 4];
-            var startIndex = left ? 3 : 0;
-            var endIndex = left ? -1 : 4;
-            var increment = left ? -1 : 1;
-
-            for (var x = 0; x < 4; x++)
-            {
-                byte last = 0;
-                var lastIndex = startIndex;
-                for (var y = startIndex; y != endIndex; y += increment)
-                {
-                    var current = this.grid[x, y];
-
-                    if (current == 0)
-                    {
-                        continue;
-                    }
-
-                    if (last == 0)
-                    {
-                        last = current;
-                        continue;
-                    }
-
-                    if (current == last)
-                    {
-                        result[x, lastIndex] = (byte)(last + 1);
-                        last = 0;
-                        lastIndex += increment;
-                        continue;
-                    }
-
-                    result[x, lastIndex] = last;
-                    last = current;
-                    lastIndex += increment;
-                }
-
-                if (last != 0)
-                {
-                    result[x, lastIndex] = last;
-                }
-            }
-
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private byte[,] MoveVertically(bool down)
-        {
-            var result = new byte[4, 4];
-            var startIndex = down ? 3 : 0;
-            var endIndex = down ? -1 : 4;
-            var increment = down ? -1 : 1;
 
             for (var y = 0; y < 4; y++)
             {
                 byte last = 0;
-                var lastIndex = startIndex;
+                var lastIndex = 3;
 
-                for (var x = startIndex; x != endIndex; x += increment)
+                for (var x = 3; x >= 0; x--)
                 {
                     var current = this.grid[x, y];
 
@@ -369,13 +269,13 @@
                     {
                         result[lastIndex, y] = (byte)(last + 1);
                         last = 0;
-                        lastIndex += increment;
+                        lastIndex += -1;
                         continue;
                     }
 
                     result[lastIndex, y] = last;
                     last = current;
-                    lastIndex += increment;
+                    lastIndex += -1;
                 }
 
                 if (last != 0)
@@ -384,7 +284,146 @@
                 }
             }
 
-            return result;
+            return new LogarithmicGrid(result);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private LogarithmicGrid MoveLeft()
+        {
+            var result = new byte[4, 4];
+
+            for (var x = 0; x < 4; x++)
+            {
+                byte last = 0;
+                var lastIndex = 0;
+                for (var y = 0; y < 4; y++)
+                {
+                    var current = this.grid[x, y];
+
+                    if (current == 0)
+                    {
+                        continue;
+                    }
+
+                    if (last == 0)
+                    {
+                        last = current;
+                        continue;
+                    }
+
+                    if (current == last)
+                    {
+                        result[x, lastIndex] = (byte)(last + 1);
+                        last = 0;
+                        lastIndex += 1;
+                        continue;
+                    }
+
+                    result[x, lastIndex] = last;
+                    last = current;
+                    lastIndex += 1;
+                }
+
+                if (last != 0)
+                {
+                    result[x, lastIndex] = last;
+                }
+            }
+
+            return new LogarithmicGrid(result);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private LogarithmicGrid MoveRight()
+        {
+            var result = new byte[4, 4];
+
+            for (var x = 0; x < 4; x++)
+            {
+                byte last = 0;
+                var lastIndex = 3;
+                for (var y = 3; y >= 0; y--)
+                {
+                    var current = this.grid[x, y];
+
+                    if (current == 0)
+                    {
+                        continue;
+                    }
+
+                    if (last == 0)
+                    {
+                        last = current;
+                        continue;
+                    }
+
+                    if (current == last)
+                    {
+                        result[x, lastIndex] = (byte)(last + 1);
+                        last = 0;
+                        lastIndex += -1;
+                        continue;
+                    }
+
+                    result[x, lastIndex] = last;
+                    last = current;
+                    lastIndex += -1;
+                }
+
+                if (last != 0)
+                {
+                    result[x, lastIndex] = last;
+                }
+            }
+
+            return new LogarithmicGrid(result);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private LogarithmicGrid MoveUp()
+        {
+            var result = new byte[4, 4];
+
+            for (var y = 0; y < 4; y++)
+            {
+                byte last = 0;
+                var lastIndex = 0;
+
+                for (var x = 0; x < 4; x++)
+                {
+                    var current = this.grid[x, y];
+
+                    if (current == 0)
+                    {
+                        continue;
+                    }
+
+                    if (last == 0)
+                    {
+                        last = current;
+                        continue;
+                    }
+
+                    if (current == last)
+                    {
+                        result[lastIndex, y] = (byte)(last + 1);
+                        last = 0;
+                        lastIndex += 1;
+                        continue;
+                    }
+
+                    result[lastIndex, y] = last;
+                    last = current;
+                    lastIndex += 1;
+                }
+
+                if (last != 0)
+                {
+                    result[lastIndex, y] = last;
+                }
+            }
+
+            return new LogarithmicGrid(result);
         }
     }
 }

@@ -8,11 +8,9 @@
 
     public class ComputerNode : Node
     {
-        public ComputerNode(LogarithmicGrid grid, SearchTree searchTree)
-            : base(searchTree)
+        public ComputerNode(LogarithmicGrid grid, SearchTree searchTree, int sum)
+            : base(grid, searchTree, sum)
         {
-            this.Grid = grid;
-
             this.heuristicLazy = new Lazy<double>(() => this.SearchTree.Heuristic.Evaluate(this), false);
         }
 
@@ -29,15 +27,22 @@
                 yield return node;
             }
 
+            IDictionary<LogarithmicGrid, PlayerNode> knownPlayerNodesWithSumPlus2;
+            if (!this.SearchTree.KnownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus2))
+            {
+                knownPlayerNodesWithSumPlus2 = new Dictionary<LogarithmicGrid, PlayerNode>();
+                this.SearchTree.KnownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus2);
+            }
+
             if (!this.allNodesWith2Computed)
             {
-                foreach (var possibleState in this.Grid.NextPossibleWorldStatesWith2().Skip(this.computedNodesWith2.Count))
+                foreach (var possibleState in this.Grid.NextPossibleStatesWith2().Skip(this.computedNodesWith2.Count))
                 {
                     PlayerNode playerNode;
-                    if (!this.SearchTree.KnownPlayerNodes.TryGetValue(possibleState, out playerNode))
+                    if (!knownPlayerNodesWithSumPlus2.TryGetValue(possibleState, out playerNode))
                     {
-                        playerNode = new PlayerNode(possibleState, this.SearchTree);
-                        this.SearchTree.KnownPlayerNodes.Add(possibleState, playerNode);
+                        playerNode = new PlayerNode(possibleState, this.SearchTree, this.Sum + 2);
+                        knownPlayerNodesWithSumPlus2.Add(possibleState, playerNode);
                     }
 
                     this.computedNodesWith2.Add(playerNode);
@@ -58,15 +63,22 @@
                 yield return node;
             }
 
+            IDictionary<LogarithmicGrid, PlayerNode> knownPlayerNodesWithSumPlus4;
+            if (!this.SearchTree.KnownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus4))
+            {
+                knownPlayerNodesWithSumPlus4 = new Dictionary<LogarithmicGrid, PlayerNode>();
+                this.SearchTree.KnownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus4);
+            }
+
             if (!this.allNodesWith4Computed)
             {
-                foreach (var possibleState in this.Grid.NextPossibleWorldStatesWith4().Skip(this.computedNodesWith4.Count))
+                foreach (var possibleState in this.Grid.NextPossibleStatesWith4().Skip(this.computedNodesWith4.Count))
                 {
                     PlayerNode playerNode;
-                    if (!this.SearchTree.KnownPlayerNodes.TryGetValue(possibleState, out playerNode))
+                    if (!knownPlayerNodesWithSumPlus4.TryGetValue(possibleState, out playerNode))
                     {
-                        playerNode = new PlayerNode(possibleState, this.SearchTree);
-                        this.SearchTree.KnownPlayerNodes.Add(possibleState, playerNode);
+                        playerNode = new PlayerNode(possibleState, this.SearchTree, this.Sum + 4);
+                        knownPlayerNodesWithSumPlus4.Add(possibleState, playerNode);
                     }
 
                     this.computedNodesWith4.Add(playerNode);
@@ -78,23 +90,5 @@
         }
 
         public IEnumerable<PlayerNode> Children => this.GetChildrenWith4().Concat(this.GetChildrenWith2());
-
-        public IEnumerable<ComputerNode> GetCachedComputerNodes()
-        {
-            var with2 = this.computedNodesWith2.SelectMany(pn => pn.GetCachedComputerNodes());
-
-            var with4 = this.computedNodesWith4.SelectMany(pn => pn.GetCachedComputerNodes());
-
-            return new[] { this }.Concat(with2).Concat(with4);
-        }
-
-        public IEnumerable<PlayerNode> GetCachedPlayerNodes()
-        {
-            var with2 = this.computedNodesWith2.SelectMany(pn => pn.GetCachedPlayerNodes());
-
-            var with4 = this.computedNodesWith4.SelectMany(pn => pn.GetCachedPlayerNodes());
-
-            return with2.Concat(with4);
-        }
     }
 }

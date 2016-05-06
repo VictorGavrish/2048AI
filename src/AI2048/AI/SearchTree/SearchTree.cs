@@ -19,49 +19,30 @@
         public SearchTree(IHeuristic heuristic, LogarithmicGrid startingGrid)
         {
             this.Heuristic = heuristic;
-            this.RootNode = new PlayerNode(startingGrid, this);
-
-            this.KnownPlayerNodes = new Dictionary<LogarithmicGrid, PlayerNode>();
-            this.KnownComputerNodes = new Dictionary<LogarithmicGrid, ComputerNode>();
+            this.RootNode = new PlayerNode(startingGrid, this, startingGrid.Sum());
         }
-
-        private int turnCount;
 
         public void MoveRoot(LogarithmicGrid newGrid)
         {
-            this.turnCount++;
-
             this.RootNode = this.RootNode.Children.Values
                 .SelectMany(cn => cn.Children)
                 .First(pn => pn.Grid.Equals(newGrid));
 
-            if (this.turnCount % 10 == 0)
+            var sum = this.RootNode.Sum;
+
+            foreach (var lesserSum in this.KnownPlayerNodesBySum.Keys.Where(k => k <= sum).ToArray())
             {
-                this.CleanUpDictionaries();
+                this.KnownPlayerNodesBySum.Remove(lesserSum);
+            }
+
+            foreach (var lesserSum in this.KnownComputerNodesBySum.Keys.Where(k => k < sum).ToArray())
+            {
+                this.KnownComputerNodesBySum.Remove(lesserSum);
             }
         }
 
-        private void CleanUpDictionaries()
-        {
-            this.KnownPlayerNodes = this.GetUniqueCachedPlayerNodes()
-                .ToDictionary(pn => pn.Grid, pn => pn);
-            this.KnownComputerNodes = this.GetUniqueCachedComputerNodes()
-                .ToDictionary(cn => cn.Grid, cn => cn);
+        public IDictionary<int, IDictionary<LogarithmicGrid, PlayerNode>> KnownPlayerNodesBySum { get; } = new Dictionary<int, IDictionary<LogarithmicGrid, PlayerNode>>();
 
-            GC.Collect();
-        }
-
-        public IDictionary<LogarithmicGrid, PlayerNode> KnownPlayerNodes { get; private set; }
-
-        public IDictionary<LogarithmicGrid, ComputerNode> KnownComputerNodes { get; private set; }
-
-        private IEnumerable<PlayerNode> GetUniqueCachedPlayerNodes()
-        {
-            return this.RootNode.GetCachedPlayerNodes().Distinct();
-        }
-        private IEnumerable<ComputerNode> GetUniqueCachedComputerNodes()
-        {
-            return this.RootNode.GetCachedComputerNodes().Distinct();
-        }
+        public IDictionary<int, IDictionary<LogarithmicGrid, ComputerNode>> KnownComputerNodesBySum { get; } = new Dictionary<int, IDictionary<LogarithmicGrid, ComputerNode>>();
     }
 }
