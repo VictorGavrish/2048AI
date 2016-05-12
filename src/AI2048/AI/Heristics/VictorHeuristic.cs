@@ -67,22 +67,11 @@
             return mirrored;
         }
 
-        public double Evaluate(PlayerNode node)
-        {
-            return this.Evaluate((Node)node);
-        }
-
-        public double Evaluate(ComputerNode node)
-        {
-            return this.Evaluate((Node)node);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Evaluate(Node node)
+        public double Evaluate(IPlayerNode node)
         {
             var grid = node.Grid;
 
-            var result = this.heatMaps.Select(heatMap => EvaluateGrid(grid, heatMap)).Max();
+            var result = this.heatMaps.Select(map => EvaluateGrid(grid, map)).Max();
 
             result -= 1 << Math.Max(0, 6 - EvaluateEmptyCells(node.Grid));
 

@@ -17,17 +17,15 @@ namespace AI2048.AI.Searchers
 
         private static readonly double MinEvaluation = -1000000000;
 
-        private readonly PlayerNode rootNode;
+        private readonly IPlayerNode rootNode;
 
         private readonly SearchStatistics searchStatistics;
-
-        private IEnumerable<Move> allowedMoves;
 
         private readonly double minProbability;
 
         private readonly int maxSearchDepth;
 
-        public ProbabilityLimitedExpectiMaxer(PlayerNode rootNode, double minProbability = 0.005, int maxSearchDepth = 7)
+        public ProbabilityLimitedExpectiMaxer(IPlayerNode rootNode, double minProbability = 0.004, int maxSearchDepth = 6)
         {
             this.rootNode = rootNode;
             this.minProbability = minProbability;
@@ -66,21 +64,15 @@ namespace AI2048.AI.Searchers
             return result;
         }
 
-        public void SetAvailableMoves(IEnumerable<Move> moves)
-        {
-            this.allowedMoves = moves;
-        }
-
         private IDictionary<Move, double> InitializeEvaluation()
         {
             return this.rootNode.Children
-                .Where(kvp => this.allowedMoves?.Contains(kvp.Key) ?? true)
                 .ToDictionary(
                     child => child.Key,
                     child => this.GetPositionEvaluation(child.Value, this.maxSearchDepth, 1));
         }
 
-        private double GetPositionEvaluation(PlayerNode playerNode, int depth, double probability)
+        private double GetPositionEvaluation(IPlayerNode playerNode, int depth, double probability)
         {
             this.searchStatistics.NodeCount++;
 
@@ -99,7 +91,7 @@ namespace AI2048.AI.Searchers
             return playerNode.Children.Values.Max(child => this.GetPositionEvaluation(child, depth, probability));
         }
 
-        private double GetPositionEvaluation(ComputerNode computerNode, int depth, double probability)
+        private double GetPositionEvaluation(IComputerNode computerNode, int depth, double probability)
         {
             this.searchStatistics.NodeCount++;
 

@@ -3,35 +3,26 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing.Imaging;
+    using System.Globalization;
     using System.IO;
 
     using AI2048.AI;
     using AI2048.AI.Agent;
     using AI2048.Game;
 
+    using NodaTime;
+
     internal class Program
     {
         private static void Main(string[] args)
         {
-            //RunGameInBrowser();
-
-            var gameOverStates = new List<LogarithmicGrid>();
-
             var times = 10;
 
-            for (var i = 0; i < times; i++)
-            {
-                var logGrid = RunGameInConsole();
+            var logGrid = RunGameInConsole();
 
-                File.AppendAllText("results.txt", logGrid.ToString());
+            File.AppendAllText("results.txt", logGrid.ToString());
 
-                gameOverStates.Add(logGrid);
-            }
-
-            foreach (var state in gameOverStates)
-            {
-                Console.WriteLine(state);
-            }
+            Console.WriteLine(logGrid);
         }
 
         private static LogarithmicGrid RunGameInConsole()
@@ -41,10 +32,33 @@
             var agent = new Agent(logGrid);
             try
             {
+                int counter = 0;
+
                 while (true)
                 {
-                    var move = agent.MakeDecision();
-                    logGrid = logGrid.MakeMove(move).AddRandomTile();
+                    counter++;
+
+                    var startTime = SystemClock.Instance.Now;
+
+                    Console.WriteLine("Start next move calculation...");
+
+                    var result = agent.MakeDecision();
+
+                    var elapsed = SystemClock.Instance.Now - startTime;
+
+                    if (counter % 5 == 0)
+                    {
+                        Console.Clear();
+
+                        Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("ss.fff", CultureInfo.InvariantCulture));
+                        Console.WriteLine();
+
+                        Console.WriteLine(result);
+
+                        PrintTimings(agent);
+                    }
+
+                    logGrid = logGrid.MakeMove(result.BestMove).AddRandomTile();
                     agent.UpdateGrid(logGrid);
                 }
             }
@@ -56,6 +70,17 @@
             return logGrid;
         }
 
+        private static void PrintTimings(Agent agent)
+        {
+            foreach (var kvp in agent.Timings)
+            {
+                var humanValue = kvp.Key == 0 ? 0 : 2 << (kvp.Key - 1);
+                Console.WriteLine($"{humanValue,5}: {kvp.Value.ToString("mm:ss.fff", CultureInfo.InvariantCulture)}");
+            }
+
+            Console.WriteLine($"Time passed this game: {(SystemClock.Instance.Now - agent.Start).ToString("mm:ss.fff", CultureInfo.InvariantCulture)}");
+        }
+
         private static void RunGameInBrowser()
         {
             using (var game = new GamePage())
@@ -65,8 +90,8 @@
                 {
                     while (true)
                     {
-                        var move = agent.MakeDecision();
-                        game.Turn(move);
+                        var result = agent.MakeDecision();
+                        game.Turn(result.BestMove);
                         agent.UpdateGrid(game.GridState);
                     }
                 }

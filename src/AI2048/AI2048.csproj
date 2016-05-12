@@ -89,19 +89,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI\GameOverException.cs" />
-    <Compile Include="AI\Searchers\AlphaBetaMiniMaxer.cs" />
+    <Compile Include="AI\Heristics\Heuristics.cs" />
     <Compile Include="AI\Searchers\ProbabilityLimitedExpectiMaxer.cs" />
-    <Compile Include="AI\Searchers\Models\AlphaBetaSearchStatistics.cs" />
-    <Compile Include="AI\Searchers\ExpectiMaxer.cs" />
     <Compile Include="AI\Searchers\ISearcher.cs" />
     <Compile Include="AI\Searchers\Models\SearchResult.cs" />
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />
+    <Compile Include="AI\SearchTree\IComputerNode.cs" />
+    <Compile Include="AI\SearchTree\IPlayerNode.cs" />
+    <Compile Include="AI\SearchTree\ISearchTree.cs" />
     <Compile Include="AI\SearchTree\SearchTree.cs" />
     <Compile Include="AI\Heristics\OvolveHeuristic.cs" />
     <Compile Include="AI\Heristics\IHeuristic.cs" />
-    <Compile Include="AI\SearchTree\ComputerNode.cs" />
-    <Compile Include="AI\SearchTree\PlayerNode.cs" />
-    <Compile Include="AI\SearchTree\Node.cs" />
     <Compile Include="AI\Agent\Agent.cs" />
     <Compile Include="AI\Heristics\VictorHeuristic.cs" />
     <Compile Include="Game\LogarithmicGrid.cs" />

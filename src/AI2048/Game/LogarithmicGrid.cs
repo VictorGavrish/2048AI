@@ -40,6 +40,7 @@
         {
             var result = new byte[16];
             Buffer.BlockCopy(this.grid, 0, result, 0, 16);
+
             return result;
         }
 
@@ -51,7 +52,7 @@
                 for (var x = 0; x < 4; x++)
                 {
                     var value = this.grid[x, y];
-                    sum += value == 0 ? 0 : 2 << (value - 1);
+                    sum += GetHuman(value);
                 }
             }
 
@@ -164,18 +165,21 @@
             }
         }
 
+        private static int GetHuman(byte value)
+        {
+            return value == 0 ? 0 : 2 << (value - 1);
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
-            for (var x = 0; x < this.grid.GetLength(1); x++)
+            for (var x = 0; x < 4; x++)
             {
-                for (var y = 0; y < this.grid.GetLength(0); y++)
+                for (var y = 0; y < 4; y++)
                 {
-                    var current = this.grid[x, y];
+                    var current = GetHuman(this.grid[x, y]);
 
-                    var currentHumnan = current == 0 ? 0 : Math.Pow(2, current);
-
-                    sb.Append($"{currentHumnan,5}");
+                    sb.Append($"{current,5}");
                 }
 
                 sb.AppendLine();
@@ -212,7 +216,8 @@
         {
             fixed (byte* buffer = this.grid)
             {
-                long* x = (long*)buffer, y = (long*)(buffer + 8);
+                long* x = (long*)buffer;
+                long* y = (long*)(buffer + 8);
 
                 return (*x).GetHashCode()*31 + (*y).GetHashCode()*23;
             }
@@ -223,7 +228,10 @@
         {
             fixed (byte* p1 = first, p2 = second)
             {
-                byte* x1 = p1, x2 = p2, y1 = p1 + 8, y2 = p2 + 8;
+                byte* x1 = p1;
+                byte* y1 = p1 + 8;
+                byte* x2 = p2;
+                byte* y2 = p2 + 8;
 
                 return *(long*)x1 == *(long*)x2 && *(long*)y1 == *(long*)y2;
             }

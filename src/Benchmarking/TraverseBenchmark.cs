@@ -35,7 +35,7 @@
             }
         }
 
-        private void Visit(ComputerNode node, int searchDepth)
+        private void Visit(IComputerNode node, int searchDepth)
         {
             foreach (var child in node.Children)
             {
@@ -43,7 +43,7 @@
             }
         }
 
-        private void Visit(PlayerNode node, int searchDepth)
+        private void Visit(IPlayerNode node, int searchDepth)
         {
             if (searchDepth == 0)
             {
