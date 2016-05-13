@@ -11,9 +11,24 @@
     public static class Heuristics
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetEmptyCellEvalution(LogarithmicGrid grid)
+        public static int GetEmptyCellCount(LogarithmicGrid grid)
         {
-            var ajacentCount = 0;
+            var emptyCount = 0;
+
+            for (int y = 0; y < 4; y++)
+            {
+                for (int x = 0; x < 4; x++)
+                {
+                    emptyCount += grid[x, y] == 0 ? 1 : 0;
+                }
+            }
+
+            return emptyCount;
+        }
+
+        public static int GetAdjacentCellCount(LogarithmicGrid grid)
+        {
+            var adjacentCount = 0;
 
             for (var y = 0; y < 4; y++)
             {
@@ -21,7 +36,7 @@
                 {
                     if (grid[x, y] != 0 && grid[x, y] == grid[x + 1, y])
                     {
-                        ajacentCount++;
+                        adjacentCount++;
                         x++;
                     }
                 }
@@ -33,31 +48,31 @@
                 {
                     if (grid[x, y] != 0 && grid[x, y] == grid[x, y + 1])
                     {
-                        ajacentCount++;
+                        adjacentCount++;
                         y++;
                     }
                 }
             }
 
-            var emptyCount = grid.Flatten().Count(b => b == 0);
-
-            return ajacentCount + emptyCount;
+            return adjacentCount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte GetMaxValueEvalution(IPlayerNode node) => node.Grid.Flatten().Max();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetSmoothness(IPlayerNode node)
+        public static int GetSmoothness(LogarithmicGrid grid)
         {
             var smoothness = 0;
-
+            
             for (var y = 0; y < 4; y++)
             {
                 for (var x = 0; x < 4; x++)
                 {
-                    smoothness = GetNeighbors(node.Grid, x, y)
-                        .Aggregate(smoothness, (current, neighbor) => current - Math.Abs(node.Grid[x, y] - neighbor));
+                    foreach (var neighbor in GetNeighbors(grid, x, y))
+                    {
+                        smoothness = smoothness - Math.Abs(grid[x, y] - neighbor);
+                    }
                 }
             }
 
@@ -65,7 +80,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, int cellX, int cellY)
+        private static IEnumerable<byte> GetNeighbors(LogarithmicGrid grid, int cellX, int cellY)
         {
             for (var x = cellX + 1; x < 4; x++)
             {
@@ -91,17 +106,18 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetMonotonicity(IPlayerNode node)
+        public static int GetMonotonicity(LogarithmicGrid grid)
         {
             var down = 0;
             var up = 0;
+            
             for (var x = 0; x < 4; x++)
             {
                 var current = 0;
                 var next = current + 1;
                 while (next < 4)
                 {
-                    while (next < 4 && node.Grid[x, next] == 0)
+                    while (next < 4 && grid[x, next] == 0)
                     {
                         next++;
                     }
@@ -111,8 +127,8 @@
                         next--;
                     }
 
-                    var currentValue = node.Grid[x, current];
-                    var nextValue = node.Grid[x, next];
+                    var currentValue = grid[x, current];
+                    var nextValue = grid[x, next];
 
                     if (currentValue > nextValue)
                     {
@@ -137,7 +153,7 @@
 
                 while (next < 4)
                 {
-                    while (next < 4 && node.Grid[next, y] == 0)
+                    while (next < 4 && grid[next, y] == 0)
                     {
                         next++;
                     }
@@ -147,8 +163,8 @@
                         next--;
                     }
 
-                    var currentValue = node.Grid[current, y];
-                    var nextValue = node.Grid[next, y];
+                    var currentValue = grid[current, y];
+                    var nextValue = grid[next, y];
 
                     if (currentValue > nextValue)
                     {

@@ -15,11 +15,14 @@ namespace AI2048.AI.Agent
 
     public class Agent
     {
+        private readonly ISearcherFactory searcherFactory;
+
         private readonly SearchTree searchTree;
 
-        public Agent(LogarithmicGrid startingGrid)
+        public Agent(LogarithmicGrid startingGrid, ISearcherFactory searcherFactory, IHeuristic heuristic)
         {
-            this.searchTree = new SearchTree(new VictorHeuristic(), startingGrid);
+            this.searcherFactory = searcherFactory;
+            this.searchTree = new SearchTree(heuristic, startingGrid);
 
             this.Timings.Add(1, Duration.Zero);
             if (startingGrid.Flatten().Any(i => i == 2))
@@ -47,7 +50,7 @@ namespace AI2048.AI.Agent
                 this.Timings.Add(lastMax + 1, SystemClock.Instance.Now - this.Start);
             }
 
-            ISearcher searcher = new ProbabilityLimitedExpectiMaxer(this.searchTree);
+            var searcher = this.searcherFactory.Build(this.searchTree);
 
             var searchResults = searcher.Search();
 

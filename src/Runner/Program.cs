@@ -8,6 +8,8 @@
 
     using AI2048.AI;
     using AI2048.AI.Agent;
+    using AI2048.AI.Heristics;
+    using AI2048.AI.Searchers;
     using AI2048.Game;
 
     using NodaTime;
@@ -35,7 +37,7 @@
                 { 0, 8, 0, 0 }
             });
 
-            var agent = new Agent(logGrid);
+            var agent = new Agent(logGrid, new ProbabilityLimitedExpectiMaxerFactory(), new OvolveHeuristic());
             try
             {
                 int counter = 0;
@@ -88,7 +90,7 @@
         {
             using (var game = new GamePage())
             {
-                var agent = new Agent(game.GridState);
+                var agent = new Agent(game.GridState, new ProbabilityLimitedExpectiMaxerFactory(), new VictorHeuristic());
                 try
                 {
                     while (true)

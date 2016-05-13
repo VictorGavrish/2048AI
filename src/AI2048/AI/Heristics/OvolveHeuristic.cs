@@ -6,7 +6,12 @@ namespace AI2048.AI.Heristics
     {
         public double Evaluate(IPlayerNode node)
         {
-            var result = Heuristics.GetMonotonicity(node) + Heuristics.GetEmptyCellEvalution(node.Grid);
+            if (node.GameOver)
+            {
+                return -10000000;
+            }
+
+            var result = Heuristics.GetMonotonicity(node.Grid) * 10 + Heuristics.GetEmptyCellCount(node.Grid);
 
             return result;
         }

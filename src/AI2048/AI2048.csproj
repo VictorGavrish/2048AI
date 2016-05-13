@@ -90,10 +90,12 @@
   <ItemGroup>
     <Compile Include="AI\GameOverException.cs" />
     <Compile Include="AI\Heristics\Heuristics.cs" />
+    <Compile Include="AI\Searchers\ISearcherFactory.cs" />
     <Compile Include="AI\Searchers\ProbabilityLimitedExpectiMaxer.cs" />
     <Compile Include="AI\Searchers\ISearcher.cs" />
     <Compile Include="AI\Searchers\Models\SearchResult.cs" />
     <Compile Include="AI\Searchers\Models\SearchStatistics.cs" />
+    <Compile Include="AI\Searchers\ProbabilityLimitedExpectiMaxerFactory.cs" />
     <Compile Include="AI\SearchTree\IComputerNode.cs" />
     <Compile Include="AI\SearchTree\IPlayerNode.cs" />
     <Compile Include="AI\SearchTree\ISearchTree.cs" />
