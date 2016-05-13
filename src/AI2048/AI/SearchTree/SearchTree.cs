@@ -11,36 +11,41 @@
     {
         public IHeuristic Heuristic { get; }
 
-        public IPlayerNode RootNode { get; private set; }
+        private PlayerNode rootNode;
+        public IPlayerNode RootNode => this.rootNode;
+
+        public int KnownPlayerNodeCount => this.knownPlayerNodesBySum.Sum(kvp => kvp.Value.Count);
+
+        public int KnownComputerNodeCount => this.knownComputerNodesBySum.Sum(kvp => kvp.Value.Count);
 
         public SearchTree(IHeuristic heuristic, LogarithmicGrid startingGrid)
         {
             this.Heuristic = heuristic;
-            this.RootNode = new PlayerNode(startingGrid, this, startingGrid.Sum());
+            this.rootNode = new PlayerNode(startingGrid, this, startingGrid.Sum());
         }
 
         public void MoveRoot(LogarithmicGrid newGrid)
         {
-            this.RootNode = this.RootNode.Children.Values
-                                .SelectMany(cn => cn.Children)
-                                .First(pn => pn.Grid.Equals(newGrid));
+            this.rootNode = (PlayerNode)this.rootNode.Children.Values
+                                            .SelectMany(cn => cn.Children)
+                                            .First(pn => pn.Grid.Equals(newGrid));
 
-            var sum = this.RootNode.Sum;
+            var sum = this.rootNode.Sum;
 
-            foreach (var lesserSum in this.KnownPlayerNodesBySum.Keys.Where(k => k <= sum).ToArray())
+            foreach (var lesserSum in this.knownPlayerNodesBySum.Keys.Where(k => k <= sum).ToArray())
             {
-                this.KnownPlayerNodesBySum.Remove(lesserSum);
+                this.knownPlayerNodesBySum.Remove(lesserSum);
             }
 
-            foreach (var lesserSum in this.KnownComputerNodesBySum.Keys.Where(k => k < sum).ToArray())
+            foreach (var lesserSum in this.knownComputerNodesBySum.Keys.Where(k => k < sum).ToArray())
             {
-                this.KnownComputerNodesBySum.Remove(lesserSum);
+                this.knownComputerNodesBySum.Remove(lesserSum);
             }
         }
 
-        public IDictionary<int, IDictionary<LogarithmicGrid, IPlayerNode>> KnownPlayerNodesBySum { get; } = new Dictionary<int, IDictionary<LogarithmicGrid, IPlayerNode>>();
+        private readonly IDictionary<int, IDictionary<LogarithmicGrid, IPlayerNode>> knownPlayerNodesBySum = new Dictionary<int, IDictionary<LogarithmicGrid, IPlayerNode>>();
 
-        public IDictionary<int, IDictionary<LogarithmicGrid, IComputerNode>> KnownComputerNodesBySum { get; } = new Dictionary<int, IDictionary<LogarithmicGrid, IComputerNode>>();
+        private readonly IDictionary<int, IDictionary<LogarithmicGrid, IComputerNode>> knownComputerNodesBySum = new Dictionary<int, IDictionary<LogarithmicGrid, IComputerNode>>();
 
         private abstract class Node
         {
@@ -49,19 +54,13 @@
                 this.Grid = grid;
                 this.SearchTree = searchTree;
                 this.Sum = sum;
-
-                this.emptyCellCountLazy = new Lazy<int>(this.GetEmptyCellCount, false);
             }
 
             public int Sum { get; }
 
-            public int EmptyCellCount => this.emptyCellCountLazy.Value;
-            private readonly Lazy<int> emptyCellCountLazy;
-            private int GetEmptyCellCount() => this.Grid.Flatten().Count(i => i == 0);
-
             public LogarithmicGrid Grid { get; }
 
-            public SearchTree SearchTree { get; }
+            protected SearchTree SearchTree { get; }
         }
 
         private class ComputerNode : Node, IComputerNode
@@ -80,21 +79,23 @@
                 {
                     this.computedNodesWith2 = new List<IPlayerNode>();
                 }
-
-                foreach (var node in this.computedNodesWith2)
+                else
                 {
-                    yield return node;
-                }
-
-                IDictionary<LogarithmicGrid, IPlayerNode> knownPlayerNodesWithSumPlus2;
-                if (!this.SearchTree.KnownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus2))
-                {
-                    knownPlayerNodesWithSumPlus2 = new Dictionary<LogarithmicGrid, IPlayerNode>();
-                    this.SearchTree.KnownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus2);
+                    foreach (var node in this.computedNodesWith2)
+                    {
+                        yield return node;
+                    }
                 }
 
                 if (!this.allNodesWith2Computed)
                 {
+                    IDictionary<LogarithmicGrid, IPlayerNode> knownPlayerNodesWithSumPlus2;
+                    if (!this.SearchTree.knownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus2))
+                    {
+                        knownPlayerNodesWithSumPlus2 = new Dictionary<LogarithmicGrid, IPlayerNode>();
+                        this.SearchTree.knownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus2);
+                    }
+
                     foreach (var possibleState in this.Grid.NextPossibleStatesWith2().Skip(this.computedNodesWith2.Count))
                     {
                         IPlayerNode playerNode;
@@ -105,6 +106,7 @@
                         }
 
                         this.computedNodesWith2.Add(playerNode);
+
                         yield return playerNode;
                     }
                 }
@@ -121,21 +123,23 @@
                 {
                     this.computedNodesWith4 = new List<IPlayerNode>();
                 }
-
-                foreach (var node in this.computedNodesWith4)
+                else
                 {
-                    yield return node;
-                }
-
-                IDictionary<LogarithmicGrid, IPlayerNode> knownPlayerNodesWithSumPlus4;
-                if (!this.SearchTree.KnownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus4))
-                {
-                    knownPlayerNodesWithSumPlus4 = new Dictionary<LogarithmicGrid, IPlayerNode>();
-                    this.SearchTree.KnownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus4);
+                    foreach (var node in this.computedNodesWith4)
+                    {
+                        yield return node;
+                    }
                 }
 
                 if (!this.allNodesWith4Computed)
                 {
+                    IDictionary<LogarithmicGrid, IPlayerNode> knownPlayerNodesWithSumPlus4;
+                    if (!this.SearchTree.knownPlayerNodesBySum.TryGetValue(this.Sum, out knownPlayerNodesWithSumPlus4))
+                    {
+                        knownPlayerNodesWithSumPlus4 = new Dictionary<LogarithmicGrid, IPlayerNode>();
+                        this.SearchTree.knownPlayerNodesBySum.Add(this.Sum, knownPlayerNodesWithSumPlus4);
+                    }
+
                     foreach (var possibleState in this.Grid.NextPossibleStatesWith4().Skip(this.computedNodesWith4.Count))
                     {
                         IPlayerNode playerNode;
@@ -146,6 +150,7 @@
                         }
 
                         this.computedNodesWith4.Add(playerNode);
+
                         yield return playerNode;
                     }
                 }
@@ -170,9 +175,18 @@
 
             public double HeuristicValue => this.heuristicLazy.Value;
             private readonly Lazy<double> heuristicLazy;
-            private readonly IDictionary<Move, IComputerNode> cachedChildren = new Dictionary<Move, IComputerNode>();
+
+            private readonly Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>> possibleStatesLazy;
+            private IEnumerable<KeyValuePair<Move, LogarithmicGrid>> GetPossibleStates() => Moves
+                .Select(move => new KeyValuePair<Move, LogarithmicGrid>(move, this.Grid.MakeMove(move)))
+                .Where(kvp => !kvp.Value.Equals(this.Grid));
+
+            public bool GameOver => this.gameOverLazy.Value;
+            private readonly Lazy<bool> gameOverLazy;
+            private bool GetGameOver() => !this.possibleStatesLazy.Value.Any();
 
             public IDictionary<Move, IComputerNode> Children => this.GetChildrenByMove();
+            private readonly IDictionary<Move, IComputerNode> cachedChildren = new Dictionary<Move, IComputerNode>();
             private bool finishedComputing;
             private IDictionary<Move, IComputerNode> GetChildrenByMove()
             {
@@ -182,13 +196,13 @@
                 }
 
                 IDictionary<LogarithmicGrid, IComputerNode> knownComputerNodesWithSameSum;
-                if (!this.SearchTree.KnownComputerNodesBySum.TryGetValue(this.Sum, out knownComputerNodesWithSameSum))
+                if (!this.SearchTree.knownComputerNodesBySum.TryGetValue(this.Sum, out knownComputerNodesWithSameSum))
                 {
                     knownComputerNodesWithSameSum = new Dictionary<LogarithmicGrid, IComputerNode>();
-                    this.SearchTree.KnownComputerNodesBySum.Add(this.Sum, knownComputerNodesWithSameSum);
+                    this.SearchTree.knownComputerNodesBySum.Add(this.Sum, knownComputerNodesWithSameSum);
                 }
 
-                foreach (var kvp in this.PossibleStates)
+                foreach (var kvp in this.possibleStatesLazy.Value)
                 {
                     IComputerNode computerNode;
 
@@ -205,16 +219,6 @@
 
                 return this.cachedChildren;
             }
-
-            public IEnumerable<KeyValuePair<Move, LogarithmicGrid>> PossibleStates => this.possibleStatesLazy.Value;
-            private readonly Lazy<IEnumerable<KeyValuePair<Move, LogarithmicGrid>>> possibleStatesLazy;
-            private IEnumerable<KeyValuePair<Move, LogarithmicGrid>> GetPossibleStates() => Moves
-                .Select(move => new KeyValuePair<Move, LogarithmicGrid>(move, this.Grid.MakeMove(move)))
-                .Where(kvp => !kvp.Value.Equals(this.Grid));
-
-            public bool GameOver => this.gameOverLazy.Value;
-            private readonly Lazy<bool> gameOverLazy;
-            private bool GetGameOver() => !this.PossibleStates.Any();
         }
     }
 }

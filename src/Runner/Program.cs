@@ -16,8 +16,6 @@
     {
         private static void Main(string[] args)
         {
-            var times = 10;
-
             var logGrid = RunGameInConsole();
 
             File.AppendAllText("results.txt", logGrid.ToString());
@@ -27,7 +25,15 @@
 
         private static LogarithmicGrid RunGameInConsole()
         {
-            var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+            //var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
+
+            var logGrid = new LogarithmicGrid(new int[,]
+            {
+                { 16, 4, 2, 8 },
+                { 16, 128, 16, 4 },
+                { 2, 512, 32, 0 },
+                { 0, 8, 0, 0 }
+            });
 
             var agent = new Agent(logGrid);
             try
@@ -46,17 +52,14 @@
 
                     var elapsed = SystemClock.Instance.Now - startTime;
 
-                    if (counter % 5 == 0)
-                    {
-                        Console.Clear();
+                    Console.Clear();
 
-                        Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("ss.fff", CultureInfo.InvariantCulture));
-                        Console.WriteLine();
+                    Console.WriteLine("End move calcualtion, time taken: {0}", elapsed.ToString("ss.fff", CultureInfo.InvariantCulture));
+                    Console.WriteLine();
 
-                        Console.WriteLine(result);
+                    Console.WriteLine(result);
 
-                        PrintTimings(agent);
-                    }
+                    PrintTimings(agent);
 
                     logGrid = logGrid.MakeMove(result.BestMove).AddRandomTile();
                     agent.UpdateGrid(logGrid);

@@ -15,9 +15,7 @@ namespace AI2048.AI.Searchers
 
         private const double ProbabilityOf4 = 0.1;
 
-        private static readonly double MinEvaluation = -1000000000;
-
-        private readonly IPlayerNode rootNode;
+        private readonly ISearchTree searchTree;
 
         private readonly SearchStatistics searchStatistics;
 
@@ -25,39 +23,38 @@ namespace AI2048.AI.Searchers
 
         private readonly int maxSearchDepth;
 
-        public ProbabilityLimitedExpectiMaxer(IPlayerNode rootNode, double minProbability = 0.004, int maxSearchDepth = 6)
+        public ProbabilityLimitedExpectiMaxer(ISearchTree searchTree, double minProbability = 0.004, int maxSearchDepth = 6)
         {
-            this.rootNode = rootNode;
+            this.searchTree = searchTree;
             this.minProbability = minProbability;
             this.maxSearchDepth = maxSearchDepth;
 
             this.searchStatistics = new SearchStatistics
             {
-                RootNodeGrandchildren = this.rootNode.Children.Values.Sum(c => c.Children.Count())
+                RootNodeGrandchildren = this.searchTree.RootNode.Children.Values.Sum(c => c.Children.Count())
             };
         }
 
         public SearchResult Search()
         {
             var startTime = SystemClock.Instance.Now;
-            var knownPlayerNodesStart = this.rootNode.SearchTree.KnownPlayerNodesBySum.Sum(kvp => kvp.Value.Count);
-            var knownComputerNodesStart = this.rootNode.SearchTree.KnownComputerNodesBySum.Sum(kvp => kvp.Value.Count);
+            var knownPlayerNodesStart = this.searchTree.KnownPlayerNodeCount;
+            var knownComputerNodesStart = this.searchTree.KnownComputerNodeCount;
 
             var evaluationResult = this.InitializeEvaluation();
-
-            this.searchStatistics.SearchExhaustive = evaluationResult.All(kvp => kvp.Value <= MinEvaluation + this.maxSearchDepth);
+            
             this.searchStatistics.SearchDepth = this.maxSearchDepth;
             this.searchStatistics.SearchDuration = SystemClock.Instance.Now - startTime;
-            this.searchStatistics.KnownPlayerNodes = this.rootNode.SearchTree.KnownPlayerNodesBySum.Sum(kvp => kvp.Value.Count) - knownPlayerNodesStart;
-            this.searchStatistics.KnownComputerNodes = this.rootNode.SearchTree.KnownComputerNodesBySum.Sum(kvp => kvp.Value.Count) - knownComputerNodesStart;
+            this.searchStatistics.KnownPlayerNodes = this.searchTree.KnownPlayerNodeCount - knownPlayerNodesStart;
+            this.searchStatistics.KnownComputerNodes = this.searchTree.KnownComputerNodeCount - knownComputerNodesStart;
 
             var result = new SearchResult
             {
-                RootGrid = this.rootNode.Grid,
+                RootGrid = this.searchTree.RootNode.Grid,
                 BestMove = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key).First(),
                 BestMoveEvaluation = evaluationResult.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Value).First(),
-                SearcherName = nameof(ProbabilityLimitedExpectiMaxer),
                 MoveEvaluations = evaluationResult,
+                SearcherName = nameof(ProbabilityLimitedExpectiMaxer),
                 SearchStatistics = this.searchStatistics
             };
 
@@ -66,7 +63,7 @@ namespace AI2048.AI.Searchers
 
         private IDictionary<Move, double> InitializeEvaluation()
         {
-            return this.rootNode.Children
+            return this.searchTree.RootNode.Children
                 .ToDictionary(
                     child => child.Key,
                     child => this.GetPositionEvaluation(child.Value, this.maxSearchDepth, 1));
@@ -76,15 +73,10 @@ namespace AI2048.AI.Searchers
         {
             this.searchStatistics.NodeCount++;
 
-            if (playerNode.GameOver)
+            if (playerNode.GameOver || probability < this.minProbability || depth == 0)
             {
                 this.searchStatistics.TerminalNodeCount++;
-                return MinEvaluation + this.maxSearchDepth - depth;
-            }
 
-            if (probability < this.minProbability || depth == 0)
-            {
-                this.searchStatistics.TerminalNodeCount++;
                 return playerNode.HeuristicValue;
             }
 

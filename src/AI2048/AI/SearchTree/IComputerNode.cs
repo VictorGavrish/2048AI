@@ -12,12 +12,6 @@ namespace AI2048.AI.SearchTree
 
         IEnumerable<IPlayerNode> Children { get; }
 
-        int Sum { get; }
-
-        int EmptyCellCount { get; }
-
         LogarithmicGrid Grid { get; }
-
-        SearchTree SearchTree { get; }
     }
 }

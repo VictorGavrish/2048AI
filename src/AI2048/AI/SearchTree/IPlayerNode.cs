@@ -6,20 +6,12 @@ namespace AI2048.AI.SearchTree
 
     public interface IPlayerNode
     {
-        double HeuristicValue { get; }
-
         IDictionary<Move, IComputerNode> Children { get; }
-
-        IEnumerable<KeyValuePair<Move, LogarithmicGrid>> PossibleStates { get; }
 
         bool GameOver { get; }
 
-        int Sum { get; }
-
-        int EmptyCellCount { get; }
+        double HeuristicValue { get; }
 
         LogarithmicGrid Grid { get; }
-
-        SearchTree SearchTree { get; }
     }
 }

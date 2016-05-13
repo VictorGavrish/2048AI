@@ -47,7 +47,7 @@ namespace AI2048.AI.Agent
                 this.Timings.Add(lastMax + 1, SystemClock.Instance.Now - this.Start);
             }
 
-            ISearcher searcher = new ProbabilityLimitedExpectiMaxer(this.searchTree.RootNode);
+            ISearcher searcher = new ProbabilityLimitedExpectiMaxer(this.searchTree);
 
             var searchResults = searcher.Search();
 

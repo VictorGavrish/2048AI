@@ -10,6 +10,8 @@
 
     public class VictorHeuristic : IHeuristic
     {
+        private const double MinEvaluation = -1000000000;
+
         private readonly long[,] heatMap =
         {
             { 0, 0, 1, 3 },
@@ -69,6 +71,11 @@
 
         public double Evaluate(IPlayerNode node)
         {
+            if (node.GameOver)
+            {
+                return MinEvaluation;
+            }
+
             var grid = node.Grid;
 
             var result = this.heatMaps.Select(map => EvaluateGrid(grid, map)).Max();

@@ -8,8 +8,6 @@ namespace AI2048.AI.Searchers.Models
 
     public class SearchStatistics
     {
-        public bool SearchExhaustive { get; set; }
-
         public Duration SearchDuration { get; set; }
 
         public int SearchDepth { get; set; }
