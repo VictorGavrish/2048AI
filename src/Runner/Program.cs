@@ -27,15 +27,7 @@
 
         private static LogarithmicGrid RunGameInConsole()
         {
-            //var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
-
-            var logGrid = new LogarithmicGrid(new int[,]
-            {
-                { 16, 4, 2, 8 },
-                { 16, 128, 16, 4 },
-                { 2, 512, 32, 0 },
-                { 0, 8, 0, 0 }
-            });
+            var logGrid = new LogarithmicGrid(new byte[4, 4]).AddRandomTile().AddRandomTile();
 
             var agent = new Agent(logGrid, new ProbabilityLimitedExpectiMaxerFactory(), new OvolveHeuristic());
             try
